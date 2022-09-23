@@ -3,6 +3,8 @@ package com.qjp.xjbx.controller;
 import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.qjp.xjbx.common.BaseContext;
+import com.qjp.xjbx.common.CustomException;
 import com.qjp.xjbx.common.R;
 import com.qjp.xjbx.pojo.User;
 import com.qjp.xjbx.service.SendMailService;
@@ -17,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,7 +27,8 @@ import java.util.concurrent.TimeUnit;
 
 @RestController
 @Slf4j
-@CrossOrigin(origins = "*")
+//@CrossOrigin(origins = "*")
+@CrossOrigin()
 @RequestMapping("/user")
 public class UserController {
     @Autowired
@@ -54,13 +58,16 @@ public class UserController {
      * @return
      */
     @PostMapping("/register")
-    public R<User> register(@RequestBody Map map) {
+    public R<User> register(@RequestBody Map map) throws IOException {
         //获取邮箱
         String account = map.get("account").toString();
         //获取验证码
         String code = map.get("code").toString();
         //获取密码
         String password = map.get("password").toString();
+        String[] result = account.split("@") ;
+        String qq= result[0];
+        User ut = userService.register(qq);
         //从Redis缓存中获取缓存中的验证码
         String codeInRedis = (String) redisTemplate.opsForValue().get(account);
         //进行验证码的比对（页面提交的验证码与Session中保存的验证码对比）
@@ -74,10 +81,13 @@ public class UserController {
                 user = new User();
                 user.setAccount(account);
                 user.setPassword(password);
-                user.setUsername(account);
+                user.setUsername(ut.getUsername());
+                user.setHead(ut.getHead());
+                user.setQq(qq);
                 boolean save = userService.save(user);
                 if (save) {
                     redisTemplate.delete(account);
+                    log.info("用户[{}]登录中",account);
                     return R.success(user,"注册成功");
                 }
             }
@@ -107,11 +117,13 @@ public class UserController {
             map.put("state", true);
             map.put("msg", "登录成功");
             map.put("token", token);//响应token
-            redisTemplate.opsForValue().set("token",token,60,TimeUnit.MINUTES);
+            redisTemplate.opsForValue().set(userDB.getId(),token,7,TimeUnit.DAYS);
             userDB.setState(1);
             LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
-            String id = userDB.getId();
             wrapper.eq(User::getId,userDB.getId());
+            BaseContext.setCurrentId(Long.valueOf(userDB.getId()));
+            String currentId = String.valueOf(BaseContext.getCurrentId());
+            log.info("当前用户：[{}]",currentId);
             userService.update(userDB,wrapper);
         } catch (Exception e) {
             map.put("state", false);
@@ -126,8 +138,8 @@ public class UserController {
      * @return
      */
     @GetMapping("/exit")
-    public R<String> exit(HttpServletRequest request){
-        String token = request.getHeader("token");
+    public R<String> exit(@RequestHeader(value="token", required = false) String token,HttpServletRequest request){
+//        String token = request.getHeader("token");
         DecodedJWT verify =JWTUtils.verify(token);
         String id = verify.getClaim("id").asString();
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
@@ -135,7 +147,7 @@ public class UserController {
         User one = userService.getOne(wrapper);
         one.setState(0);
         userService.update(one,wrapper);
-        redisTemplate.delete("token");
+        redisTemplate.delete(id);
         return R.success("退出成功");
     }
     /**
@@ -144,9 +156,12 @@ public class UserController {
      * @return
      */
     @PutMapping("/update")
-    public R<String> update(@RequestBody User user) {
+    public R<String> update(@RequestHeader(value="token", required = false) String token,@RequestBody User user,HttpServletRequest request) {
+//        String token = request.getHeader("token");
+        DecodedJWT verify =JWTUtils.verify(token);
+        String id = verify.getClaim("id").asString();
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(User::getAccount, user.getAccount());
+        wrapper.eq(User::getId, id);
         userService.update(user, wrapper);
         return R.success("修改成功");
 
@@ -154,14 +169,15 @@ public class UserController {
 
     /**
      * 查看个人信息
-     * @param request
+     * @param
      * @return
      */
-    @GetMapping
+    @PostMapping
     public R<User> getAll(HttpServletRequest request){
         String token = request.getHeader("token");
         DecodedJWT verify =JWTUtils.verify(token);
         String id = verify.getClaim("id").asString();
+        log.info("id:[{}]",id);
         LambdaQueryWrapper<User>  wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(id != null,User::getId,id)
                 .select(User.class,i -> !i.getColumn().equals("password"));

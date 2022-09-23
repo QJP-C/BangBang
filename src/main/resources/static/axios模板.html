@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<button id="get">get请求</button>
+<button id="post">post请求</button>
+</body>
+<script src="https://cdn.jsdelivr.net/npm/axios@0.24.0/dist/axios.min.js"></script>
+<script>
+    document.getElementById('get').onclick= ()=>{
+
+        const {data:res}= axios({
+            url: 'http://114.116.95.152/user/exit',
+            methods: 'get',
+            headers:{token:'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjE1NzMyODM0MzkzMjU0OTUyOTgiLCJleHAiOjE2NjQ1NTAxNTUsImFjY291bnQiOiI5MTU5NTAwOTJAcXEuY29tIn0.fNzy2Yb7pxTnU2XlIahe9LJC8uVgfQE7qjcllTZ8pQo'}
+        }).then(res=>{
+            console.log(res)
+        })
+    }
+    document.getElementById('post').onclick= ()=>{
+        const {data:res}= axios({
+            //post请求地址
+            url:'http://114.116.95.152/user',
+            methods:'post',
+            // post携带数据
+            // data:{
+            //     "mail": "949516815@qq.com"
+            // },
+            headers: {
+                token:'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjE1NzMyODM0MzkzMjU0OTUyOTgiLCJleHAiOjE2NjQ1NTAxNTUsImFjY291bnQiOiI5MTU5NTAwOTJAcXEuY29tIn0.fNzy2Yb7pxTnU2XlIahe9LJC8uVgfQE7qjcllTZ8pQo'
+            }
+        }).then(res=>{
+            console.log(res)
+        })
+        console.log(res)
+    }
+
+</script>
+</html>

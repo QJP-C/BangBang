@@ -11,4 +11,6 @@ public class User {
     private int state;
     private String phone;
     private String sex;
+    private String qq;
+    private String head;
 }
