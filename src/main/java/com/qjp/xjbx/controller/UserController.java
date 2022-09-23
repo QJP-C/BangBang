@@ -74,6 +74,7 @@ public class UserController {
                 user = new User();
                 user.setAccount(account);
                 user.setPassword(password);
+                user.setUsername(account);
                 boolean save = userService.save(user);
                 if (save) {
                     redisTemplate.delete(account);
@@ -162,7 +163,8 @@ public class UserController {
         DecodedJWT verify =JWTUtils.verify(token);
         String id = verify.getClaim("id").asString();
         LambdaQueryWrapper<User>  wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(id != null,User::getId,id);
+        wrapper.eq(id != null,User::getId,id)
+                .select(User.class,i -> !i.getColumn().equals("password"));
         User one = userService.getOne(wrapper);
         return R.success(one);
     }

@@ -44,3 +44,6 @@ mybatis-plus:
     db-config:
       id-type: ASSIGN_ID
 
+
+xjbx:
+  path: a
