@@ -21,6 +21,12 @@ public class SendMailServiceImpl implements SendMailService {
     private String subject="来自坤坤的验证码";
     //正文
 //    private String context="测试正文内容";
+
+    /**
+     * 发送验证码邮件
+     * @param account
+     * @param code
+     */
     @Override
     public void sendMail(String account,String code) {
         SimpleMailMessage message=new SimpleMailMessage();

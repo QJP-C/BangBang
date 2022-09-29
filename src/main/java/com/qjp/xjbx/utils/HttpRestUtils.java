@@ -9,7 +9,9 @@ import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 
-
+/**
+ * 发请求
+ */
 public class HttpRestUtils {
 
     /**

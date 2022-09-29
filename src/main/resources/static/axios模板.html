@@ -7,6 +7,23 @@
 <body>
 <button id="get">get请求</button>
 <button id="post">post请求</button>
+
+<form action="http://localhost/mo/upload"  method="post" enctype="multipart/form-data" >
+    <table>
+        <tr>
+            <td>请选择文件:</td>
+            <td><input type="file" name="file"></td>
+<!--            <td><input type="file" name="file2"></td>-->
+        </tr>
+    </table>
+    <input type="submit" value="上传文件">
+</form>
+<button id="wjxz">文件下载</button>
+<script >
+    document.querySelector('#wjxz').onclick=function (){
+        window.location.href="http://localhost/common/download"
+    }
+</script>
 </body>
 <script src="https://cdn.jsdelivr.net/npm/axios@0.24.0/dist/axios.min.js"></script>
 <script>

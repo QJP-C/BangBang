@@ -42,12 +42,14 @@ public class R<T> implements Serializable {
     }
 
 
+
     public static <T> R<T> error(String message) {
-        R r = new R();
+        R<T> r = new R<T>();
         r.message = message;
         r.code = 0;
         return r;
     }
+
 
     public R<T> add(String key, Object value) {
         this.map.put(key, value);

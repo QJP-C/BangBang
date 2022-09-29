@@ -4,14 +4,13 @@ package com.qjp.xjbx.config;
 import com.qjp.xjbx.common.JacksonObjectMapper;
 import com.qjp.xjbx.interceptors.JWTInterceptor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.ArrayList;
@@ -46,12 +45,29 @@ public class WebConfig implements WebMvcConfigurer {
         excludePathPatterns.add("/user/login");
         excludePathPatterns.add("/user/register");
         excludePathPatterns.add("/user/account");
+        excludePathPatterns.add("/favicon.ico");
+
+
+
 
         registry.addInterceptor(jwtInterceptor())
                 .addPathPatterns(addPathPatterns)   //拦截验证token
                 .excludePathPatterns(excludePathPatterns);      //放行
 
     }
+    /**
+     * 添加静态资源文件
+     *
+     * @param registry
+     */
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        registry.addResourceHandler("/static/**")
+                .addResourceLocations("classpath:/static/img/");
+        registry.addResourceHandler("/img/**").addResourceLocations("file:E:\\xiangmu\\xjbx\\src\\main\\resources\\static\\img\\");
+
+    }
+
     /**
      * 扩展mvc框架的消息转换器
      * @param converters

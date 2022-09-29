@@ -8,7 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.qjp.xjbx.common.BaseContext;
 import com.qjp.xjbx.service.UserService;
 import com.qjp.xjbx.utils.JWTUtils;
-import com.qjp.xjbx.utils.RedisUtil;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -30,12 +30,18 @@ public class JWTInterceptor implements HandlerInterceptor {
     @Autowired
     private RedisTemplate redisTemplate;
 
+    /**
+     * 验证token
+     * @param request
+     * @param response
+     * @param handler
+     * @return
+     * @throws Exception
+     */
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
 
-//        ValueOperations valueOperations = RedisUtil.redis.opsForValue();
-//        String token1 = (String) valueOperations.get("token");
-//        log.info("token1:[{}]",token1);
+
         log.info("====================JWTInterceptor==========");
         //如果是预检请求，手动加上请求状态200
         if (request.getMethod().equals(RequestMethod.OPTIONS.name())) {
@@ -69,7 +75,7 @@ public class JWTInterceptor implements HandlerInterceptor {
             map.put("msg", "token算法不一致！");
         } catch (Exception e) {
             e.printStackTrace();
-            map.put("msg", "token:无效！");
+            map.put("msg", "token:无效！,我劝你别瞎搞");
         }
             map.put("state", false);//设置状态
             //将map专为json jackson

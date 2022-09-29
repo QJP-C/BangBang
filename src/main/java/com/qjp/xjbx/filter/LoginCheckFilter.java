@@ -36,36 +36,40 @@ public class LoginCheckFilter implements Filter {
         boolean check = check(urls,requestURI);
 //        3、如果不需要处理，则直接放行
         if (check){
+            //request.getLocalAddr()//获取本机IP
+            //request.getRemoteAddr()//Java获取远程IP地址:
+            String remoteAddr = request.getRemoteAddr();
+            String remoteHost = request.getRemoteHost();
+            log.info("ip:[{}]",remoteAddr);
+            log.info("主机名:[{}]",remoteHost);
             log.info("本次请求{}不需要处理",requestURI);
             filterChain.doFilter(request,response);
-            return;
         }
-//        4-1、判断登录状态，如果已登录，则直接放行
-        if (request.getSession().getAttribute("employee") != null){
-            log.info("用户{}已登录！",request.getSession().getAttribute("employee"));
-
-            Long employeeId = (Long) request.getSession().getAttribute("employee");
-
-            BaseContext.setCurrentId(employeeId);
-
-            filterChain.doFilter(request,response);
-            return;
-        }
-//        4-2、判断登录状态，如果已登录，则直接放行
-        if (request.getSession().getAttribute("user") != null){
-            log.info("用户{}已登录！",request.getSession().getAttribute("user"));
-
-            Long userId = (Long) request.getSession().getAttribute("user");
-
-            BaseContext.setCurrentId(userId);
-
-            filterChain.doFilter(request,response);
-            return;
-        }
+////        4-1、判断登录状态，如果已登录，则直接放行
+//        if (request.getSession().getAttribute("employee") != null){
+//            log.info("用户{}已登录！",request.getSession().getAttribute("employee"));
+//
+//            Long employeeId = (Long) request.getSession().getAttribute("employee");
+//
+//            BaseContext.setCurrentId(employeeId);
+//
+//            filterChain.doFilter(request,response);
+//            return;
+//        }
+////        4-2、判断登录状态，如果已登录，则直接放行
+//        if (request.getSession().getAttribute("user") != null){
+//            log.info("用户{}已登录！",request.getSession().getAttribute("user"));
+//
+//            Long userId = (Long) request.getSession().getAttribute("user");
+//
+//            BaseContext.setCurrentId(userId);
+//
+//            filterChain.doFilter(request,response);
+//            return;
+//        }
 //        5、如果未登录则返回未登录结果,通过输出流的方式向客户端响应数据
-        log.info("用户未登录！");
-        response.getWriter().write(JSON.toJSONString(R.error("NOTLOGIN")));
-        return;
+//        log.info("用户未登录！");
+//        response.getWriter().write(JSON.toJSONString(R.error("NOTLOGIN")));
     }
 
     /**

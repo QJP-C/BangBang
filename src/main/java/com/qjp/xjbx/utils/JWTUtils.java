@@ -8,6 +8,10 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import java.util.Calendar;
 import java.util.Map;
 
+/**
+ * JWT token
+ */
+
 public class JWTUtils {
 
     private static final String SIGN = "XYSisQJPdeEZ";  //签名

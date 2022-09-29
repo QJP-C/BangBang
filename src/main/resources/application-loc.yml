@@ -18,6 +18,11 @@ spring:
           starttls:
             enable: true
             required: true
+  servlet:
+    multipart:
+      max-file-size: 200MB
+      max-request-size: 200MB
+
   application:
     #应用的名称，可选
     name: xjbx
@@ -43,6 +48,10 @@ mybatis-plus:
   global-config:
     db-config:
       id-type: ASSIGN_ID
-
+minio:
+  endpoint: http://114.116.95.152:9000
+  accessKey: 915950092
+  secretKey: 20010128
+  bucketName: xjbx
 xjbx:
-  path: a
+  path: E:\xiangmu\xjbx\src\main\resources\static\img\

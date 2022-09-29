@@ -1,5 +1,4 @@
 package com.qjp.xjbx.controller;
-
 import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -15,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -27,8 +27,8 @@ import java.util.concurrent.TimeUnit;
 
 @RestController
 @Slf4j
-//@CrossOrigin(origins = "*")
-@CrossOrigin()
+@CrossOrigin
+@Transactional
 @RequestMapping("/user")
 public class UserController {
     @Autowired
@@ -46,10 +46,16 @@ public class UserController {
     @PostMapping("/account")
     public R<String> account(@RequestBody User user){
         String code = ValidateCodeUtils.generateValidateCode(4).toString();
-        //将生成的验证码缓存到Redis中，并且设置有效时间为5分钟
-        redisTemplate.opsForValue().set(user.getAccount(),code,5, TimeUnit.MINUTES);
-        sendMailService.sendMail(user.getAccount(), code);
-        return R.success("验证码已发至邮箱");
+        LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(User::getAccount,user.getAccount());
+        User one = userService.getOne(wrapper);
+        if (one==null){
+            //将生成的验证码缓存到Redis中，并且设置有效时间为5分钟
+            redisTemplate.opsForValue().set(user.getAccount(),code,5, TimeUnit.MINUTES);
+            sendMailService.sendMail(user.getAccount(), code);
+            return R.success("验证码已发至邮箱");
+        }
+        return R.error("该用户已存在");
     }
 
     /**
@@ -57,6 +63,7 @@ public class UserController {
      * @param map
      * @return
      */
+
     @PostMapping("/register")
     public R<User> register(@RequestBody Map map) throws IOException {
         //获取邮箱
@@ -75,7 +82,8 @@ public class UserController {
             //比对成功，登录成功
             //判断当前手机号对应的用户是否为新用户，如果是新用户自动完成注册
             LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
-            wrapper.eq(User::getAccount, account);
+            wrapper.eq(User::getAccount, account)
+                    .select(User.class,i -> !i.getColumn().equals("password"));
             User user = userService.getOne(wrapper);
             if (user == null) {
                 user = new User();
@@ -105,30 +113,37 @@ public class UserController {
     @PostMapping("/login")
     public R<Map<String, Object>> login(@RequestBody User user) {
         log.info("用卢名：[{}]", user.getAccount());
-        log.info("密码：[{}]", user.getPassword());
         Map<String, Object> map = new HashMap<>();
-        try {
-            User userDB = userService.login(user);
-            Map<String, String> payload = new HashMap<>();
-            payload.put("id", userDB.getId());
-            payload.put("account", userDB.getAccount());
-            //生成JWT的令牌
-            String token = JWTUtils.getToken(payload);
-            map.put("state", true);
-            map.put("msg", "登录成功");
-            map.put("token", token);//响应token
-            redisTemplate.opsForValue().set(userDB.getId(),token,7,TimeUnit.DAYS);
-            userDB.setState(1);
-            LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
-            wrapper.eq(User::getId,userDB.getId());
-            BaseContext.setCurrentId(Long.valueOf(userDB.getId()));
-            String currentId = String.valueOf(BaseContext.getCurrentId());
-            log.info("当前用户：[{}]",currentId);
-            userService.update(userDB,wrapper);
-        } catch (Exception e) {
-            map.put("state", false);
-            map.put("msg", e.getMessage());
+        LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(User::getAccount,user.getAccount());
+        User userDB = userService.getOne(wrapper);
+        if (userDB != null){
+//        User userDB = userService.login(user);
+//        if (userDB!= null){
+            wrapper.eq(User::getPassword,user.getPassword());
+            User user1 = userService.getOne(wrapper);
+            if (user1!=null) {
+                Map<String, String> payload = new HashMap<>();
+                payload.put("id", userDB.getId());
+                payload.put("account", userDB.getAccount());
+                //生成JWT的令牌
+                String token = JWTUtils.getToken(payload);
+                map.put("state", true);
+                map.put("msg", "登录成功");
+                map.put("token", token);//响应token
+                redisTemplate.opsForValue().set(userDB.getId(), token, 7, TimeUnit.DAYS);
+                userDB.setState(1);
+                LambdaQueryWrapper<User> wrapper2 = new LambdaQueryWrapper<>();
+                wrapper2.eq(User::getId, userDB.getId());
+                BaseContext.setCurrentId(Long.valueOf(userDB.getId()));
+                userService.update(userDB, wrapper);
+            }else {
+                return R.error("登录失败，密码错误！");
+            }
+        }else {
+            return R.error("登录失败，该用户不存在！");
         }
+
         return R.success(map);
     }
 
@@ -156,7 +171,7 @@ public class UserController {
      * @return
      */
     @PutMapping("/update")
-    public R<String> update(@RequestHeader(value="token", required = false) String token,@RequestBody User user,HttpServletRequest request) {
+    public R<String> update(@RequestHeader(value="token") String token,@RequestBody User user) {
 //        String token = request.getHeader("token");
         DecodedJWT verify =JWTUtils.verify(token);
         String id = verify.getClaim("id").asString();
