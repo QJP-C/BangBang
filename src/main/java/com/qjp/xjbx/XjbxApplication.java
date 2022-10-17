@@ -16,6 +16,7 @@ public class XjbxApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(XjbxApplication.class, args);
+
     }
 
 }

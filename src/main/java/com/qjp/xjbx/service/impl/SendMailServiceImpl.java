@@ -24,14 +24,14 @@ public class SendMailServiceImpl implements SendMailService {
 
     /**
      * 发送验证码邮件
-     * @param account
+     * @param email
      * @param code
      */
     @Override
-    public void sendMail(String account,String code) {
+    public void sendMail(String email,String code) {
         SimpleMailMessage message=new SimpleMailMessage();
         message.setFrom(from+"(爱坤)");
-        message.setTo(account);
+        message.setTo(email);
         message.setSubject(subject);
         message.setText(code);
 //        message.setSentDate();定时发送

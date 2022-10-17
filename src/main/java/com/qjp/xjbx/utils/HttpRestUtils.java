@@ -25,7 +25,7 @@ public class HttpRestUtils {
      * http get
      * */
     public static String get(String url, MultiValueMap<String, String> params) throws IOException {
-        return  httpRestClient(url, HttpMethod.POST, params);
+        return  httpRestClient(url, HttpMethod.GET, params);
     }
 
     /**

@@ -2,7 +2,6 @@ package com.qjp.xjbx.config;
 
 
 import com.qjp.xjbx.common.JacksonObjectMapper;
-import com.qjp.xjbx.interceptors.JWTInterceptor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -44,8 +43,17 @@ public class WebConfig implements WebMvcConfigurer {
         //不需要拦截的请求
         excludePathPatterns.add("/user/login");
         excludePathPatterns.add("/user/register");
-        excludePathPatterns.add("/user/account");
+        excludePathPatterns.add("/user/email");
+        excludePathPatterns.add("/user/yz");
         excludePathPatterns.add("/favicon.ico");
+        excludePathPatterns.add("/imserver/**");
+        excludePathPatterns.add("/files/**");
+        excludePathPatterns.add("/alipay/**");
+        excludePathPatterns.add("/doc.html");
+        excludePathPatterns.add("/webjars/**");
+        excludePathPatterns.add("/index.html");
+        excludePathPatterns.add("/swagger-resources/**");
+
 
 
 

@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.EOFException;
 import java.sql.SQLIntegrityConstraintViolationException;
 
 /**
@@ -31,6 +32,11 @@ public class GlobalExceptionHandler {
     public R<String> jwtException(JWTDecodeException e){
         log.error("出现未知异常 -> ", e);
         return R.error("我劝你别瞎搞 O_o! 令牌格式有误！ -> "+e.getClass().getName());
+    }
+    @ExceptionHandler(value = EOFException.class)
+    public R<String> EOFException(EOFException e){
+        log.error("出现未知异常 -> ", e);
+        return R.error("连接已断开！ -> "+e.getClass().getName());
     }
     /**
      * 捕获空指针异常
