@@ -1,6 +1,7 @@
 package com.qjp.xjbx.controller;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.aliyuncs.utils.StringUtils;
 import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -9,6 +10,7 @@ import com.qjp.xjbx.common.CustomException;
 import com.qjp.xjbx.common.R;
 import com.qjp.xjbx.pojo.User;
 import com.qjp.xjbx.service.SendMailService;
+import com.qjp.xjbx.service.SendSms;
 import com.qjp.xjbx.service.UserService;
 import com.qjp.xjbx.utils.HttpRestUtils;
 import com.qjp.xjbx.utils.JWTUtils;
@@ -47,6 +49,46 @@ public class UserController {
     private SendMailService sendMailService;
     @Resource
     private RedisTemplate redisTemplate;
+    @Autowired
+    private SendSms sendSms;
+
+    /**
+     * 发送手机验证码
+     * @param phone
+     * @return
+     */
+    @GetMapping("/sms/{phone}")
+    public R<String> sendSms(@PathVariable("phone") String phone){
+        LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(User::getPhone,phone);
+        User one = userService.getOne(wrapper);
+        if (one!=null){
+            return R.error("该用户已存在！");
+        }
+        //得到电话，先看查一下redis中有无存放验证码
+        String code = (String) redisTemplate.opsForValue().get(phone);
+        //有则返回已存在
+        if (!StringUtils.isEmpty(code)){
+            return R.success("验证码未发送 ："+code+"还未过期！",code);
+        }else {
+            //没有则生成验证码，uuid随机生成四位数验证码
+//            code = UUID.randomUUID().toString().substring(0,4);   //随机生成四个数形成验证码
+            String code1 = ValidateCodeUtils.generateValidateCode(4).toString();
+            HashMap<String, Object> map = new HashMap<>();
+            map.put("code",code1);
+            //调用方法发送信息 传入电话，模板，验证码   SMS_255290290   SMS_251070336
+            boolean send = sendSms.addSendSms(phone, "SMS_255290290", map);
+            //返回ture则发送成功
+            if (send){
+                //存入redis中并设置过期时间，这里设置5分钟过期
+                redisTemplate.opsForValue().set(phone,code1,8, TimeUnit.MINUTES);
+                return R.success("手机号:"+phone+"验证码发送成功!");
+            }else {
+                //返回false则发送失败
+                return R.error("发送失败");
+            }
+        }
+    }
 
     /**
      * 向邮箱发送验证码
@@ -75,17 +117,32 @@ public class UserController {
      */
     @PostMapping("/yz")
     public R<String>  yanZ(@RequestBody Map map){
-        String email = map.get("email").toString();
         String code = map.get("code").toString();
-        log.info("code:{}",code);
-        String codeInRedis = (String) redisTemplate.opsForValue().get(email);
-        if (Objects.equals(codeInRedis, code)){
-            redisTemplate.delete(email);
-            return R.success("验证码正确");
+        //判断是短信验证还是邮箱验证
+        int ss=0;
+        for (Object key : map.keySet()) {
+            if (key.equals("phone")) {
+                ss = 1;
+                break;
+            }
+        }
+        if(ss==0){
+            String email = map.get("email").toString();
+            String codeInRedis = (String) redisTemplate.opsForValue().get(email);
+            if (Objects.equals(codeInRedis, code)){
+                redisTemplate.delete(email);
+                return R.success("验证码正确");
+            }
+        }else {
+            String phone = map.get("phone").toString();
+            String codeInRedis = (String) redisTemplate.opsForValue().get(phone);
+            if (Objects.equals(codeInRedis, code)){
+                redisTemplate.delete(phone);
+                return R.success("验证码正确");
+            }
         }
         return R.error("验证码错误");
     }
-
     /**
      * 注册
      * @param map
@@ -160,7 +217,6 @@ public class UserController {
         }else {
             return R.error("登录失败，该用户不存在！");
         }
-
         return R.success(map);
     }
 
@@ -170,7 +226,7 @@ public class UserController {
      * @return
      */
     @GetMapping("/exit")
-    public R<String> exit(@RequestHeader(value="token", required = false) String token,HttpServletRequest request){
+    public R<String> exit(@RequestHeader(value="token") String token,HttpServletRequest request){
 //        String token = request.getHeader("token");
         DecodedJWT verify =JWTUtils.verify(token);
         String id = verify.getClaim("id").asString();

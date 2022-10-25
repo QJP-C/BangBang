@@ -53,6 +53,8 @@ public class WebConfig implements WebMvcConfigurer {
         excludePathPatterns.add("/webjars/**");
         excludePathPatterns.add("/index.html");
         excludePathPatterns.add("/swagger-resources/**");
+        excludePathPatterns.add("/user/sms/**");
+
 
 
 

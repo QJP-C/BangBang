@@ -35,7 +35,7 @@ public class GlobalExceptionHandler {
     }
     @ExceptionHandler(value = EOFException.class)
     public R<String> EOFException(EOFException e){
-        log.error("出现未知异常 -> ", e);
+        log.error("出现连接异常 -> ", e);
         return R.error("连接已断开！ -> "+e.getClass().getName());
     }
     /**
@@ -44,7 +44,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value=NullPointerException.class)
     public R<String> handleNullPointerException(NullPointerException e, HttpServletRequest request) {
         log.error("出现空指针异常 -> ", e);
-        return R.error("出现空指针异常! -> "+e.getClass().getName());
+        return R.error("出现空指针异常!请添加合法的请求参数 -> "+e.getClass().getName());
     }
     /**
      * 异常处理方法

@@ -15,7 +15,7 @@ public class User {
     private String username;
     private int state;
     private String phone;
-    private String sex;
+    private int sex;
     private String qq;
     private String head;
     private LocalDateTime birthday;

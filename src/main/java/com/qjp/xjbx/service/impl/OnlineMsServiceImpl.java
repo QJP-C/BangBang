@@ -25,8 +25,6 @@ public class OnlineMsServiceImpl extends ServiceImpl<OnlineMsMapper, OnlineMs> i
         String now = String.valueOf(LocalDateTime.now());
         System.out.println(m);
         redisTemplate.opsForHash().put("M"+from,now,m);
-
-
         return null;
     }
 

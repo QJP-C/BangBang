@@ -2,11 +2,18 @@ package com.qjp.xjbx.controller;
 
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.qjp.xjbx.common.R;
+import com.qjp.xjbx.dto.ClassDto;
+import com.qjp.xjbx.dto.TaskDto;
 import com.qjp.xjbx.pojo.Task;
+import com.qjp.xjbx.pojo.TaskClass;
+import com.qjp.xjbx.service.TaskClassService;
 import com.qjp.xjbx.service.TaskService;
 import com.qjp.xjbx.utils.JWTUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.checkerframework.checker.units.qual.A;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -23,41 +30,56 @@ import java.util.Objects;
 public class TaskController {
     @Autowired
     private TaskService taskService;
-
+    @Autowired
+    private TaskClassService taskClassService;
     /**
      * 发布任务
      * @param token
-     * @param task
+     * @param taskDto
      * @return
      */
     @PostMapping("/save")
-    public R<String> save(@RequestHeader(value="token") String token,@RequestBody Task task){
+    public R<String> save(@RequestHeader(value="token") String token,@RequestBody TaskDto taskDto){
         DecodedJWT verify = JWTUtils.verify(token);
         String id = verify.getClaim("id").asString();
-        task.setUser1Id(id);
-        task.setReleaseTime(LocalDateTime.now());
-        task.setUpdateTime(LocalDateTime.now());
-        task.setState(1);
-        taskService.save(task);
-        return R.success("保存成功");
+        taskDto.setUser1Id(id);
+        taskDto.setReleaseTime(LocalDateTime.now());
+        taskDto.setUpdateTime(LocalDateTime.now());
+        taskDto.setState(1);
+        boolean save = taskService.save(taskDto);
+        if (save) {
+            return R.success("保存成功");
+        }
+        return R.error("保存失败");
     }
 
     /**
      * 修改
-     * @param token
+     * @param
      * @param task
      * @return
      */
-    @PutMapping("/update")
-    public R<String> update(@RequestHeader(value="token") String token,@RequestBody Task task){
-        DecodedJWT verify = JWTUtils.verify(token);
-        String email = verify.getClaim("email").asString();
+    @PutMapping("/update/{id}")
+    public R<String> update(@PathVariable String id,@RequestBody Task task){
         LambdaQueryWrapper<Task> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Task::getId,task.getId());
+        wrapper.eq(Task::getId,id);
         task.setUpdateTime(LocalDateTime.now());
-        taskService.update(task,wrapper);
-        System.out.println();
-        return R.success("修改成功");
+        boolean update = taskService.update(task, wrapper);
+        log.info("update:{}",update);
+        if (update) {
+            return R.success("修改成功");
+        }
+        return R.error("修改失败，请联系管理员！");
+    }
+
+    /**
+     * 查询分类列表
+     * @return
+     */
+    @GetMapping
+    public R<List<ClassDto>> getKind(){
+        List<ClassDto> list = taskService.getClassDto();
+        return R.success(list);
     }
 
     /**
@@ -65,9 +87,23 @@ public class TaskController {
      * @return
      */
     @GetMapping("/all")
-    public R<List<Task>>  getRelease(){
-        List<Task> list = taskService.list();
-        return R.success(list);
+    public R<List<TaskDto>>  getRelease(){
+        List<TaskDto> all = taskService.getAlls();
+        return R.success(all);
+    }
+    /**
+     * 查看指定
+     * @return
+     */
+    @GetMapping("/one/{id}")
+    public R<TaskDto>  getRelease1(@PathVariable String id){
+        TaskDto one = taskService.getOne(id);
+        return R.success(one);
+    }
+
+
+    public R<Page> pageR(int page ,int pageSize ,String name){
+            return null;
     }
 
     /**
@@ -76,13 +112,11 @@ public class TaskController {
      * @return
      */
     @GetMapping("/my")
-    public R<List<Task>>  getOne(@RequestHeader(value="token") String token){
+    public R<List<TaskDto>>  getOne(@RequestHeader(value="token") String token){
         DecodedJWT verify = JWTUtils.verify(token);
         String id = verify.getClaim("id").asString();
-        LambdaQueryWrapper<Task> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Task::getUser1Id,id);
-        List<Task> tasks = taskService.list(wrapper);
-        return R.success(tasks,"查询成功");
+        List<TaskDto> one = taskService.my(id);
+        return R.success(one);
     }
 
     /**
@@ -100,8 +134,12 @@ public class TaskController {
         if (!Objects.equals(one.getUser1Id(), id2)) {
 //            Task task = new Task();
             task.setUser2Id(id2);
-            taskService.update(task, wrapper);
-            return R.success("接取成功");
+            boolean update = taskService.update(task, wrapper);
+            if (update){
+                return R.success("接取成功");
+            }
+            return R.error("接取失败");
+
         }
             return R.error("不能接自己发布的任务哦！");
     }

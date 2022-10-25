@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.qjp.xjbx.common.BaseContext;
 import com.qjp.xjbx.common.R;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 
 import javax.servlet.*;
@@ -15,7 +16,8 @@ import java.io.IOException;
 /**
  * 检查用户是否完成登录
  */
-@WebFilter(filterName = "loginCheckFilter",urlPatterns = "/*")
+@Component
+//@WebFilter(filterName = "loginCheckFilter",urlPatterns = "/*")
 @Slf4j
 public class LoginCheckFilter implements Filter {
     //路径匹配器，支持通配符
@@ -40,9 +42,11 @@ public class LoginCheckFilter implements Filter {
             //request.getRemoteAddr()//Java获取远程IP地址:
             String remoteAddr = request.getRemoteAddr();
             String remoteHost = request.getRemoteHost();
+            String queryString = request.getQueryString();
             log.info("ip:[{}]",remoteAddr);
             log.info("主机名:[{}]",remoteHost);
             log.info("本次请求{}不需要处理",requestURI);
+            log.info("请求参数：[{}]",queryString);
             filterChain.doFilter(request,response);
         }
 ////        4-1、判断登录状态，如果已登录，则直接放行

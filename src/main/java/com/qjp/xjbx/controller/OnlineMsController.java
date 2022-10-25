@@ -39,7 +39,7 @@ public class OnlineMsController {
     @Autowired
     private RedisTemplate redisTemplate;
 
-    @Scheduled(fixedRate=7200000)
+    @Scheduled(fixedRate=14400000)//  每隔4个小时将Redis缓存的数据转存到Mysql中去
     private void configureTasks() {
         System.out.println("=========开始将Redis中的聊天记录转存到Mysql==========");
         log.info("=========开始将Redis中的聊天记录转存到Mysql==========");

@@ -2,39 +2,40 @@ package com.qjp.xjbx;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.aliyuncs.DefaultAcsClient;
+import com.aliyuncs.IAcsClient;
+import com.aliyuncs.dysmsapi.model.v20170525.SendSmsRequest;
+import com.aliyuncs.dysmsapi.model.v20170525.SendSmsResponse;
+import com.aliyuncs.exceptions.ClientException;
+import com.aliyuncs.profile.DefaultProfile;
+import com.google.gson.Gson;
+import com.qjp.xjbx.pojo.Task;
 import com.qjp.xjbx.pojo.User;
+import com.qjp.xjbx.service.TaskService;
 import com.qjp.xjbx.utils.HttpRestUtils;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.core.BoundHashOperations;
-import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.*;
 import org.springframework.http.converter.StringHttpMessageConverter;
-import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import javax.annotation.Resource;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @Slf4j
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class XjbxApplicationTests {
     @Autowired
     private RedisTemplate redisTemplate;
+    @Autowired
+    private TaskService taskService;
 
     @Test
     void contextLoads() {
@@ -199,10 +200,54 @@ class XjbxApplicationTests {
     }
     @Test
     void skmndo(){
-       String t = "{\"time\":\"2022-10-05T21:38:02.945\",\"message\":\"嗷嗷嗷22\"}";
-        JSONObject jsonObject = JSONObject.parseObject(t);
-        LocalDateTime time = LocalDateTime.parse(jsonObject.getString("time"));
-        System.out.println(time);
+        //连接阿里云
+        DefaultProfile profile = DefaultProfile.getProfile("cn-hangzhou", "LTAI5tEgEn2SFs9NTeMH2QJ1", "5qoYF5ptXC2F8j0WXGoFC27CmHBt8K");
+        /** use STS Token
+         DefaultProfile profile = DefaultProfile.getProfile(
+         "<your-region-id>",           // The region ID
+         "<your-access-key-id>",       // The AccessKey ID of the RAM account
+         "<your-access-key-secret>",   // The AccessKey Secret of the RAM account
+         "<your-sts-token>");          // STS Token
+         **/
+        IAcsClient client = new DefaultAcsClient(profile);
+
+        //构建请求
+        SendSmsRequest request = new SendSmsRequest();
+        request.setPhoneNumbers("");
+        request.setSignName("");
+        request.setTemplateCode("");
+
+        try {
+            SendSmsResponse response = client.getAcsResponse(request);
+            System.out.println(new Gson().toJson(response));
+        } catch (ClientException e) {
+            System.out.println("ErrCode:" + e.getErrCode());
+            System.out.println("ErrMsg:" + e.getErrMsg());
+            System.out.println("RequestId:" + e.getRequestId());
+        }
+
+
+
+    }
+    @Test
+    void  ssdsd(){
+        HashMap<String, String> map = new HashMap<>();
+        map.put("phone","18119451226");
+        map.put("code","5837");
+        int ss=0;
+        for (String key : map.keySet()) {
+            String value = map.get(key);
+            if (key.equals("phone")){
+                ss=1;
+            }
+            System.out.println("key: "+key);
+            System.out.println(key + "  " + value);
+        }
+        System.out.println("ss: "+ss);
+    }
+    @Test
+    void  sdsafcv(){
+        List<Task> all = taskService.list();
 
     }
 }
