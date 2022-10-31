@@ -10,9 +10,10 @@ import java.util.List;
 
 @Data
 public class TaskDto extends Task {
-//    private List<Kind> kinds  =new ArrayList<>();
     private String  kindName;
 
     private String className;
+
+    private Integer isLike;
 
 }

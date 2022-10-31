@@ -1,10 +1,10 @@
 package com.qjp.xjbx.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.qjp.xjbx.pojo.Kind;
+import com.qjp.xjbx.pojo.UserLevel;
 
 /**
  * @author qjp
  */
-public interface KindService extends IService<Kind> {
+public interface UserLevelService extends IService<UserLevel> {
 }

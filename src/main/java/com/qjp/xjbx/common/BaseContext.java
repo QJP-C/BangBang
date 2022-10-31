@@ -2,6 +2,7 @@ package com.qjp.xjbx.common;
 
 /**
  * 基于ThreadLocal封装的工具类，用户保存和获取当前用户的id   （作用域为该线程内）
+ * @author qjp
  */
 public class BaseContext {
     private static ThreadLocal<Long> threadLocal = new ThreadLocal<>();

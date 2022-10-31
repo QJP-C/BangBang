@@ -10,6 +10,7 @@ import java.util.Map;
 
 /**
  * JWT token
+ * @author qjp
  */
 
 public class JWTUtils {

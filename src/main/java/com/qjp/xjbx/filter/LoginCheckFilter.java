@@ -15,6 +15,7 @@ import java.io.IOException;
 
 /**
  * 检查用户是否完成登录
+ * @author qjp
  */
 @Component
 //@WebFilter(filterName = "loginCheckFilter",urlPatterns = "/*")
@@ -43,9 +44,9 @@ public class LoginCheckFilter implements Filter {
             String remoteAddr = request.getRemoteAddr();
             String remoteHost = request.getRemoteHost();
             String queryString = request.getQueryString();
-            log.info("ip:[{}]",remoteAddr);
-            log.info("主机名:[{}]",remoteHost);
-            log.info("本次请求{}不需要处理",requestURI);
+//            log.info("ip:[{}]",remoteAddr);
+//            log.info("主机名:[{}]",remoteHost);
+//            log.info("本次请求{}不需要处理",requestURI);
             log.info("请求参数：[{}]",queryString);
             filterChain.doFilter(request,response);
         }

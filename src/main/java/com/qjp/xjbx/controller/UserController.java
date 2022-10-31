@@ -9,13 +9,16 @@ import com.qjp.xjbx.common.BaseContext;
 import com.qjp.xjbx.common.CustomException;
 import com.qjp.xjbx.common.R;
 import com.qjp.xjbx.pojo.User;
+import com.qjp.xjbx.pojo.UserLevel;
 import com.qjp.xjbx.service.SendMailService;
 import com.qjp.xjbx.service.SendSms;
+import com.qjp.xjbx.service.UserLevelService;
 import com.qjp.xjbx.service.UserService;
 import com.qjp.xjbx.utils.HttpRestUtils;
 import com.qjp.xjbx.utils.JWTUtils;
 import com.qjp.xjbx.utils.ValidateCodeUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.ibatis.annotations.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -51,6 +54,9 @@ public class UserController {
     private RedisTemplate redisTemplate;
     @Autowired
     private SendSms sendSms;
+    @Autowired
+    private UserLevelService userLevelService;
+
 
     /**
      * 发送手机验证码
@@ -59,6 +65,7 @@ public class UserController {
      */
     @GetMapping("/sms/{phone}")
     public R<String> sendSms(@PathVariable("phone") String phone){
+        //查询手机号是否注册过
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(User::getPhone,phone);
         User one = userService.getOne(wrapper);
@@ -97,10 +104,13 @@ public class UserController {
      */
     @PostMapping("/email")
     public R<String> account(@RequestBody User user){
+        //生成验证码
         String code = ValidateCodeUtils.generateValidateCode(4).toString();
+        //查询该邮箱是否注册过
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(User::getEmail,user.getEmail());
         User one = userService.getOne(wrapper);
+        //没有注册过进行注册
         if (one==null){
             //将生成的验证码缓存到Redis中，并且设置有效时间为5分钟
             redisTemplate.opsForValue().set(user.getEmail(),code,5, TimeUnit.MINUTES);
@@ -121,12 +131,13 @@ public class UserController {
         //判断是短信验证还是邮箱验证
         int ss=0;
         for (Object key : map.keySet()) {
-            if (key.equals("phone")) {
+            if ("phone".equals(key)) {
                 ss = 1;
                 break;
             }
         }
         if(ss==0){
+            //邮箱
             String email = map.get("email").toString();
             String codeInRedis = (String) redisTemplate.opsForValue().get(email);
             if (Objects.equals(codeInRedis, code)){
@@ -134,6 +145,7 @@ public class UserController {
                 return R.success("验证码正确");
             }
         }else {
+            //手机号
             String phone = map.get("phone").toString();
             String codeInRedis = (String) redisTemplate.opsForValue().get(phone);
             if (Objects.equals(codeInRedis, code)){
@@ -151,32 +163,74 @@ public class UserController {
 
     @PostMapping("/register")
     public R<User> register(@RequestBody Map map) throws IOException {
-        //获取邮箱
-        String email = map.get("email").toString();
-        //获取密码
-        String password = map.get("password").toString();
-        String[] result = email.split("@") ;
-        String qq= result[0];
-        User ut = userService.register(qq);
-        //判断当前手机号对应的用户是否为新用户，如果是新用户自动完成注册
-        LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(User::getEmail, email)
-                .select(User.class,i -> !i.getColumn().equals("password"));
-        User user = userService.getOne(wrapper);
-        if (user == null) {
-            user = new User();
-            user.setEmail(email);
-            user.setPassword(password);
-            user.setUsername(ut.getUsername());
-            user.setHead(ut.getHead());
-            user.setQq(qq);
-            boolean save = userService.save(user);
-            if (save) {
-                log.info("用户[{}]登录中",email);
-                return R.success(user,"注册成功");
+        //判断是短信注册还是邮箱注册
+        int ss=0;
+        for (Object key : map.keySet()) {
+            if ("phone".equals(key)) {
+                ss = 1;
+                break;
             }
         }
-        return R.error("用户已存在");
+        if(ss==0){
+            //邮箱注册
+            //获取邮箱
+            String email = map.get("email").toString();
+            //获取密码
+            String password = map.get("password").toString();
+            String[] result = email.split("@") ;
+            String qq= result[0];
+            //通过api获取用户的qq头像和昵称
+            User ut = userService.register(qq);
+            //判断当前邮箱对应的用户是否为新用户，如果是新用户完成注册
+            LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
+            wrapper.eq(User::getEmail, email);
+            User user = userService.getOne(wrapper);
+            if (user == null) {
+                user = new User();
+                user.setEmail(email);
+                user.setPassword(password);
+                user.setUsername(ut.getUsername());
+                user.setHead(ut.getHead());
+                user.setQq(qq);
+                user.setCredibility(1);
+                user.setExperience(0);
+                user.setSex(1);
+                user.setState(0);
+                user.setPermissions(0);
+                boolean save = userService.save(user);
+                if (save) {
+                    log.info("用户[{}]登录中",email);
+                    return R.success(user,"注册成功");
+                }
+            }
+            return R.error("用户已存在");
+        }else {
+            //短信注册
+            //获取手机号
+            String phone = map.get("phone").toString();
+            //获取密码
+            String password = map.get("password").toString();
+            //判断当前手机号对应的用户是否为新用户，如果是新用户完成注册
+            LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
+            wrapper.eq(User::getPhone, phone);
+            User user = userService.getOne(wrapper);
+            if (user == null) {
+                user = new User();
+                user.setPhone(phone);
+                user.setPassword(password);
+                user.setCredibility(1);
+                user.setExperience(0);
+                user.setSex(1);
+                user.setState(0);
+                user.setPermissions(0);
+                boolean save = userService.save(user);
+                if (save) {
+                    log.info("用户[{}]登录中",phone);
+                    return R.success(user,"注册成功");
+                }
+            }
+            return R.error("用户已存在");
+        }
     }
 
     /**
@@ -186,48 +240,82 @@ public class UserController {
      */
     @PostMapping("/login")
     public R<Map<String, Object>> login(@RequestBody User user) {
-        log.info("用卢名：[{}]", user.getEmail());
-        Map<String, Object> map = new HashMap<>();
-        LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(User::getEmail,user.getEmail());
-        User userDB = userService.getOne(wrapper);
-        if (userDB != null){
-//        User userDB = userService.login(user);
-//        if (userDB!= null){
-            wrapper.eq(User::getPassword,user.getPassword());
-            User user1 = userService.getOne(wrapper);
-            if (user1!=null) {
-                Map<String, String> payload = new HashMap<>();
-                payload.put("id", userDB.getId());
-                payload.put("email", userDB.getEmail());
-                //生成JWT的令牌
-                String token = JWTUtils.getToken(payload);
-                map.put("state", true);
-                map.put("msg", "登录成功");
-                map.put("token", token);//响应token
-                redisTemplate.opsForValue().set(userDB.getId(), token, 7, TimeUnit.DAYS);
-                userDB.setState(1);
-                LambdaQueryWrapper<User> wrapper2 = new LambdaQueryWrapper<>();
-                wrapper2.eq(User::getId, userDB.getId());
-                BaseContext.setCurrentId(Long.valueOf(userDB.getId()));
-                userService.update(userDB, wrapper);
+        if (user.getEmail()!=null){
+            //邮箱
+            log.info("邮箱：[{}]", user.getEmail());
+            Map<String, Object> map = new HashMap<>();
+            //查看用户是否存在
+            LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
+            wrapper.eq(User::getEmail,user.getEmail());
+            User userDB = userService.getOne(wrapper);
+            if (userDB != null){
+                //存在可登录
+                wrapper.eq(User::getPassword,user.getPassword());
+                User user1 = userService.getOne(wrapper);
+                if (user1!=null) {
+                    Map<String, String> payload = new HashMap<>();
+                    payload.put("id", userDB.getId());
+                    payload.put("email", userDB.getEmail());
+                    payload.put("permissions", String.valueOf(userDB.getPermissions()));
+                    //生成JWT的令牌
+                    String token = JWTUtils.getToken(payload);
+                    map.put("state", true);
+                    map.put("msg", "登录成功");
+                    map.put("token", token);//响应token
+                    //缓存token
+                    redisTemplate.opsForValue().set(userDB.getId(), token, 7, TimeUnit.DAYS);
+                    //改变用户登录状态
+                    userDB.setState(1);
+                    LambdaQueryWrapper<User> wrapper2 = new LambdaQueryWrapper<>();
+                    wrapper2.eq(User::getId, userDB.getId());
+                    userService.update(userDB, wrapper);
+                }else {
+                    return R.error("登录失败，密码错误！");
+                }
             }else {
-                return R.error("登录失败，密码错误！");
+                return R.error("登录失败，该用户不存在！");
             }
+            return R.success(map);
         }else {
-            return R.error("登录失败，该用户不存在！");
+            log.info("手机号：[{}]", user.getPhone());
+            Map<String, Object> map = new HashMap<>();
+            LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
+            wrapper.eq(User::getPhone, user.getPhone());
+            User userDB = userService.getOne(wrapper);
+            if (userDB != null) {
+                wrapper.eq(User::getPassword, user.getPassword());
+                User user1 = userService.getOne(wrapper);
+                if (user1 != null) {
+                    Map<String, String> payload = new HashMap<>();
+                    payload.put("id", userDB.getId());
+                    payload.put("phone", user.getPhone());
+                    payload.put("permissions", String.valueOf(userDB.getPermissions()));
+                    //生成JWT的令牌
+                    String token = JWTUtils.getToken(payload);
+                    map.put("state", true);
+                    map.put("msg", "登录成功");
+                    map.put("token", token);//响应token
+                    redisTemplate.opsForValue().set(userDB.getId(), token, 7, TimeUnit.DAYS);
+                    userDB.setState(1);
+                    LambdaQueryWrapper<User> wrapper2 = new LambdaQueryWrapper<>();
+                    wrapper2.eq(User::getId, userDB.getId());
+                    userService.update(userDB, wrapper);
+                } else {
+                    return R.error("登录失败，密码错误！");
+                }
+            } else {
+                return R.error("登录失败，该用户不存在！");
+            }
+            return R.success(map);
         }
-        return R.success(map);
     }
 
     /**
      * 退出登录
-     * @param request
      * @return
      */
     @GetMapping("/exit")
-    public R<String> exit(@RequestHeader(value="token") String token,HttpServletRequest request){
-//        String token = request.getHeader("token");
+    public R<String> exit(@RequestHeader(value="token") String token){
         DecodedJWT verify =JWTUtils.verify(token);
         String id = verify.getClaim("id").asString();
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
@@ -245,14 +333,12 @@ public class UserController {
      */
     @PutMapping("/update")
     public R<String> update(@RequestHeader(value="token") String token,@RequestBody User user) {
-//        String token = request.getHeader("token");
         DecodedJWT verify =JWTUtils.verify(token);
         String id = verify.getClaim("id").asString();
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(User::getId, id);
         userService.update(user, wrapper);
         return R.success("修改成功");
-
     }
 
     /**
@@ -261,14 +347,21 @@ public class UserController {
      * @return
      */
     @PostMapping
-    public R<User> getAll(HttpServletRequest request){
-        String token = request.getHeader("token");
-        DecodedJWT verify =JWTUtils.verify(token);
-        String id = verify.getClaim("id").asString();
+    public R<User> getAll(@RequestHeader(value="token") String token,@RequestBody(required = false) User user){
+        String id;
+        //参数是否有user
+        if (user == null){
+            //没有就查自己
+            DecodedJWT verify =JWTUtils.verify(token);
+             id = verify.getClaim("id").asString();
+        }else {
+            //有就查指定
+             id = user.getId();
+        }
         log.info("id:[{}]",id);
         LambdaQueryWrapper<User>  wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(id != null,User::getId,id)
-                .select(User.class,i -> !i.getColumn().equals("password"));
+                .select(User.class,i -> !"password".equals(i.getColumn()));
         User one = userService.getOne(wrapper);
         return R.success(one);
     }
@@ -304,7 +397,77 @@ public class UserController {
         return R.success(location);
     }
 
+    /**
+     * 加经验
+     */
+    @PostMapping("/up")
+    public R<String> shen(@RequestHeader(value="token") String token,@RequestBody  User user){
+        //增加的经验值
+        int exp = user.getExperience();
+        DecodedJWT verify =JWTUtils.verify(token);
+        String id = verify.getClaim("id").asString();
+        //查用户信息
+        User byId = userService.getById(id);
+        //根据用户等级查升级所需的经验
+        LambdaQueryWrapper<UserLevel> wrap = new LambdaQueryWrapper<>();
+        wrap.eq(UserLevel::getLevel,byId.getCredibility());
+        UserLevel userLevel = userLevelService.getOne(wrap);
+        int s = userLevel.getExperience();
+        //判断是否需要升级
+        int vv ;
+        if (exp<s){
+            vv = 0;
+            byId.setExperience(byId.getExperience()+exp);
+        }else {
+            vv=1;
+            byId.setCredibility(byId.getCredibility()+1);
+            byId.setExperience(exp-s);
+        }
+        userService.updateById(byId);
+        if (vv == 0){
+            return R.success("已增加"+exp+"经验");
+        }
+        return R.success("用户已升级至"+byId.getCredibility()+"级");
+    }
 
+    /**
+     * 扣经验
+     * @param token
+     * @param user
+     * @return
+     */
+    @PostMapping("/down")
+    public R<String>  down(@RequestHeader(value="token") String token,@RequestBody  User user){
+        int exp = user.getExperience();
+        DecodedJWT verify =JWTUtils.verify(token);
+        String id = verify.getClaim("id").asString();
+        User byId = userService.getById(id);
+        LambdaQueryWrapper<UserLevel> wrap = new LambdaQueryWrapper<>();
+        wrap.eq(UserLevel::getLevel,byId.getCredibility());
+        UserLevel userLevel = userLevelService.getOne(wrap);
+        int t = byId.getExperience() - exp;
+        int vv ;
+        if (t>=0){
+            vv = 0;
+            byId.setExperience(t);
+        }else {
+            vv=1;
+            if (byId.getCredibility() == 1){
+                byId.setExperience(0);
+            }else {
+                LambdaQueryWrapper<UserLevel> wrapper = new LambdaQueryWrapper<>();
+                wrapper.eq(UserLevel::getLevel, userLevel.getLevel() - 1);
+                UserLevel one = userLevelService.getOne(wrapper);
+                byId.setCredibility(byId.getCredibility() - 1);
+                byId.setExperience(one.getExperience() + t);
+            }
+        }
+        userService.updateById(byId);
+        if (vv == 0){
+            return R.success("已减少"+exp+"经验");
+        }
+        return R.success("用户已降级至"+byId.getCredibility()+"级");
+    }
 }
 
 

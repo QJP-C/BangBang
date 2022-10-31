@@ -4,6 +4,10 @@ import lombok.Data;
 
 import java.io.Serializable;
 
+/**
+ * 支付实体类
+ * @author qjp
+ */
 @Data
 public class AlipayBean implements Serializable {
 

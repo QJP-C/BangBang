@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 
 /**
  * 用户实体
+ * @author qjp
  */
 @Data
 public class User {
@@ -20,5 +21,6 @@ public class User {
     private String head;
     private LocalDateTime birthday;
     private int credibility;
+    private int experience;
     private int permissions;
 }

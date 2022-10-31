@@ -20,6 +20,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.HashMap;
 import java.util.Map;
+/**
+ * @author qjp
+ */
 @Component
 @Slf4j
 public class JWTInterceptor implements HandlerInterceptor {
@@ -39,7 +42,7 @@ public class JWTInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
 
 
-        log.info("====================JWTInterceptor==========");
+//        log.info("====================JWTInterceptor==========");
         //如果是预检请求，手动加上请求状态200
         if (request.getMethod().equals(RequestMethod.OPTIONS.name())) {
             response.setStatus(HttpStatus.OK.value());
@@ -50,9 +53,10 @@ public class JWTInterceptor implements HandlerInterceptor {
         log.info("token:[{}]",token);
         DecodedJWT verify =JWTUtils.verify(token);
         String id = verify.getClaim("id").asString();
+        String permissions = verify.getClaim("permissions").asString();
         log.info("id:[{}]",id);
+        log.info("该用户身份:[{}]",permissions);
         String token1 = (String) redisTemplate.opsForValue().get(id);
-        log.info("tokenRedis:[{}]",token1);
 
         Map<String, Object> map = new HashMap<>();
         //获取请求头中令牌
@@ -75,6 +79,9 @@ public class JWTInterceptor implements HandlerInterceptor {
             map.put("msg", "token:无效！,我劝你别瞎搞");
         }
             map.put("state", false);//设置状态
+            map.put("msg", "token已过期,请重新登录");
+        //再次登录覆盖 警告重新登陆
+
             //将map专为json jackson
             String json = new ObjectMapper().writeValueAsString(map);
             response.setContentType("application/json;charset=UTF-8");

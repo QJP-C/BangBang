@@ -6,6 +6,9 @@ import com.qjp.xjbx.pojo.Kind;
 import com.qjp.xjbx.service.KindService;
 import org.springframework.stereotype.Service;
 
+/**
+ * @author qjp
+ */
 @Service
 public class KindServiceImpl extends ServiceImpl<KindMapper, Kind> implements KindService {
 }

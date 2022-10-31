@@ -21,6 +21,7 @@ import com.qjp.xjbx.common.R;
 
 import com.qjp.xjbx.service.OnlineMsService;
 import com.qjp.xjbx.service.UserService;
+import okhttp3.WebSocket;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
@@ -28,6 +29,9 @@ import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import org.springframework.web.bind.annotation.CrossOrigin;
 
+/**
+ * @author qjp
+ */
 @ServerEndpoint("/im/{userId}")
 @CrossOrigin
 @Component
@@ -54,6 +58,7 @@ public class MessageController {
         //判断集合中是否存在当前用户
         if (!websocketList.containsKey(userId)) {
             log.info("websocketList->" + JSON.toJSONString(websocketList));
+            sessionPool.put(userId,session);
             websocketList.put(userId, this);
             webSocketSet.add(this);     //加入set中
             addOnlineCount();           //在线数加1
@@ -66,21 +71,7 @@ public class MessageController {
             log.error("websocket IO异常");
         }
     }
-//  @OnOpen
-//    public void onOpen(Session session,@PathParam("userId") String userId) {
-//        this.session = session;
-//        websocketList.put(userId,this);
-//        log.info("websocketList->"+JSON.toJSONString(websocketList));
-//        //webSocketSet.add(this);     //加入set中
-//        addOnlineCount();           //在线数加1
-//        log.info("有新窗口开始监听:"+userId+",当前在线人数为" + getOnlineCount());
-//        this.userId=userId;
-//        try {
-//            sendMessage(JSON.toJSONString(R.success("连接成功")));
-//        } catch (IOException e) {
-//            log.error("websocket IO异常");
-//        }
-//    }
+
 
     /**
      * 连接关闭调用的方法
@@ -112,7 +103,8 @@ public class MessageController {
                     String contentText=object.getString("contentText");
                     object.put("fromUserId",this.userId);
                     if (!websocketList.containsKey(toUserId)) {
-
+                            //如果对方离线
+                        onlineMsService.offline(userId, toUserId, contentText);
                     }
                     //传送给对应用户的websocket
                     if(StringUtils.isNotBlank(toUserId)&&StringUtils.isNotBlank(contentText)){
@@ -151,6 +143,7 @@ public class MessageController {
 
     // 此为单点消息
     public void sendOneMessage(String userId, String message) {
+        log.info("11");
         Session session = sessionPool.get(userId);
         if (session != null&&session.isOpen()) {
             try {
@@ -162,10 +155,39 @@ public class MessageController {
         }
     }
 
+    // 此为广播消息
+    public void sendAllMessage(String message) {
+        log.info("【websocket消息】广播消息:"+message);
+        for(MessageController webSocket : webSocketSet) {
+            try {
+                if(webSocket.session.isOpen()) {
+                    webSocket.session.getAsyncRemote().sendText(message);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    // 此为单点消息(多人)
+    public void sendMoreMessage(String[] userIds, String message) {
+        for(String userId:userIds) {
+            Session session = sessionPool.get(userId);
+            if (session != null&&session.isOpen()) {
+                try {
+                    log.info("【websocket消息】 单点消息:"+message);
+                    session.getAsyncRemote().sendText(message);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+    }
     /**
      * 群发自定义消息
      * */
-    /*public static void sendInfo(String message,@PathParam("userId") String userId) throws IOException {
+    public static void sendInfo(String message,@PathParam("userId") String userId) throws IOException {
         log.info("推送消息到窗口"+userId+"，推送内容:"+message);
         for (MessageController item : webSocketSet) {
             try {
@@ -179,7 +201,7 @@ public class MessageController {
                 continue;
             }
         }
-    }*/
+    }
 
     public static synchronized int getOnlineCount() {
         return onlineCount;

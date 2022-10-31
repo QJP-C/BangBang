@@ -1,6 +1,7 @@
 package com.qjp.xjbx;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.aliyuncs.DefaultAcsClient;
 import com.aliyuncs.IAcsClient;
@@ -8,6 +9,7 @@ import com.aliyuncs.dysmsapi.model.v20170525.SendSmsRequest;
 import com.aliyuncs.dysmsapi.model.v20170525.SendSmsResponse;
 import com.aliyuncs.exceptions.ClientException;
 import com.aliyuncs.profile.DefaultProfile;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.google.gson.Gson;
 import com.qjp.xjbx.pojo.Task;
 import com.qjp.xjbx.pojo.User;
@@ -27,6 +29,9 @@ import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.temporal.Temporal;
 import java.util.*;
 
 @Slf4j
@@ -247,7 +252,50 @@ class XjbxApplicationTests {
     }
     @Test
     void  sdsafcv(){
-        List<Task> all = taskService.list();
-
+        Set<String> keys = redisTemplate.keys("TaskKind"+"*");  //获取M开头的所有key
+        if(!keys.isEmpty()){
+            for (int i = 0; i < keys.size(); i++) {
+                String m = (String) keys.toArray()[i];
+                Boolean delete = redisTemplate.delete(m);
+                log.info("TaskKind:[{}]",delete);
+            }
+        }
     }
+    @Test
+    void sxbxc(){
+        ArrayList<String> cc = new ArrayList<>();
+        cc.add("aa");
+        cc.add("bb");
+        cc.add("cc");
+        System.out.println(cc);
+    }
+    @Test
+    void nmi(){
+        LocalDateTime now = LocalDateTime.now();
+        log.info("当前时间：{}",now);
+//        int i = limitTime.getSecond() - now.getSecond();
+        LocalDateTime limitTime = LocalDateTime.now().plusHours(3);
+        log.info("之后:{}",limitTime);
+        Duration between = Duration.between(now, limitTime);
+        long i = between.toMinutes();
+        log.info("时间差：{}",i);
+    }
+    @Test
+    void dnis(){
+        String ss = "2022-10-28 01:15:27";
+        LocalDateTime ss1 = LocalDateTime.parse("2022-10-28T01:15:27");
+        LambdaQueryWrapper<Task> wrap = new LambdaQueryWrapper<>();
+        wrap.eq(Task::getReleaseTime,ss1);
+        Task one = taskService.getOne(wrap);
+        System.out.println(one);
+    }
+    @Test
+    void vxfd(){
+        int ss=100;
+        for (int i = 0; i < 11; i++) {
+            ss= (int) (ss*1.5);
+            System.out.println(ss);
+        }
+    }
+
 }

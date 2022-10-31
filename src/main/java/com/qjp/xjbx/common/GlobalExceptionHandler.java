@@ -2,6 +2,7 @@ package com.qjp.xjbx.common;
 
 import com.auth0.jwt.exceptions.JWTDecodeException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -14,6 +15,7 @@ import java.sql.SQLIntegrityConstraintViolationException;
 
 /**
  * 全局异常处理
+ * @author qjp
  */
 @ControllerAdvice(annotations = {RestController.class, Controller.class})
 @ResponseBody
@@ -30,8 +32,13 @@ public class GlobalExceptionHandler {
     }
     @ExceptionHandler(value = JWTDecodeException.class)
     public R<String> jwtException(JWTDecodeException e){
-        log.error("出现未知异常 -> ", e);
+        log.error("出现令牌异常 -> ", e);
         return R.error("我劝你别瞎搞 O_o! 令牌格式有误！ -> "+e.getClass().getName());
+    }
+    @ExceptionHandler(value = HttpMessageNotReadableException.class)
+    public R<String> httpException(HttpMessageNotReadableException e){
+        log.error("出现未知异常 -> ", e);
+        return R.error("我劝你别瞎搞 O_o! 请求参数有误！ -> "+e.getClass().getName());
     }
     @ExceptionHandler(value = EOFException.class)
     public R<String> EOFException(EOFException e){
