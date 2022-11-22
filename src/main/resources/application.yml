@@ -1,6 +1,6 @@
 spring:
   profiles:
-    active: yun
+    active: loc
 #    active: yun
 server:
   port: 3326
