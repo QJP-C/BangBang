@@ -142,8 +142,11 @@ public class TaskController {
      */
 //    @Cacheable(value = "OneTask",key = "#id",unless = "#result == null ")
     @GetMapping("/one")
-    public R<TaskDto>  getRelease1( String id){
+    public R<TaskDto>  getRelease1(@RequestHeader(value="token") String token, String id){
+        DecodedJWT verify = JWTUtils.verify(token);
+        String userId = verify.getClaim("id").asString();
         TaskDto one = taskService.getOne(id);
+        taskService.addHistory(one,userId);
         return R.success(one);
     }
 
@@ -388,4 +391,16 @@ public class TaskController {
         List<TaskDto> today = taskService.today();
         return R.success(today);
     }
+    /**
+     * 查看个人浏览记录
+     */
+    @GetMapping("/history")
+    public R<List<TaskDto>> allHistory(@RequestHeader(value="token")String token){
+        DecodedJWT verify = JWTUtils.verify(token);
+        String userId = verify.getClaim("id").asString();
+        List<TaskDto> taskDtos = taskService.allHistory(userId);
+        return R.success(taskDtos);
+    }
+
+
 }

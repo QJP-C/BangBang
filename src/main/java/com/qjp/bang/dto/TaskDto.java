@@ -3,6 +3,8 @@ package com.qjp.bang.dto;
 import com.qjp.bang.pojo.Task;
 import lombok.Data;
 
+import java.time.LocalDateTime;
+
 /**
  * @author qjp
  */
@@ -13,5 +15,7 @@ public class TaskDto extends Task {
     private String className;
 
     private Integer isLike;
+
+    private LocalDateTime time;
 
 }

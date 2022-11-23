@@ -6,14 +6,8 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.qjp.bang.dto.ClassDto;
 import com.qjp.bang.dto.TaskDto;
 import com.qjp.bang.mapper.TaskMapper;
-import com.qjp.bang.pojo.Kind;
-import com.qjp.bang.pojo.Task;
-import com.qjp.bang.pojo.TaskClass;
-import com.qjp.bang.pojo.TaskLike;
-import com.qjp.bang.service.KindService;
-import com.qjp.bang.service.TaskClassService;
-import com.qjp.bang.service.TaskLikeService;
-import com.qjp.bang.service.TaskService;
+import com.qjp.bang.pojo.*;
+import com.qjp.bang.service.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +38,8 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
     private RedisTemplate redisTemplate;
     @Autowired
     private TaskLikeService taskLikeService;
+    @Autowired
+    private TaskHistoryService historyService;
 
     /**
      * 查指定
@@ -168,7 +164,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
         Page<TaskDto> dtoPage = new Page<>();
         //查所有待接单的符合条件的订单，按时间降序排序
         LambdaQueryWrapper<Task> wrapper = new LambdaQueryWrapper<>();
-        wrapper.select()
+        wrapper .select()
                 .eq(Task::getState,6)
                 .like(null != condition,Task::getName,condition)
                 .or()
@@ -315,5 +311,75 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
             return taskDto;
         }).collect(Collectors.toList());
         return dtos;
+    }
+
+    /**
+     * 浏览记录添加
+     * @param taskDto
+     * @param userId
+     * @return
+     */
+    @Override
+    public boolean addHistory(TaskDto taskDto,String userId) {
+        LambdaQueryWrapper<TaskHistory> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(TaskHistory::getTaskId,taskDto.getId())
+                    .eq(TaskHistory::getUserId,userId);
+        TaskHistory one = historyService.getOne(queryWrapper);
+        if (one != null) {
+            historyService.remove(queryWrapper );
+        }
+        TaskHistory taskHistory = new TaskHistory();
+        taskHistory.setTaskId(taskDto.getId());
+        taskHistory.setTime(LocalDateTime.now());
+        taskHistory.setUserId(userId);
+        return historyService.save(taskHistory);
+
+    }
+
+    /**
+     * 个人浏览记录
+     * @param userId
+     * @return
+     */
+    @Override
+    public List<TaskDto> allHistory(String userId) {
+        LambdaQueryWrapper<TaskHistory> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(TaskHistory ::getUserId,userId)
+                .orderByDesc(TaskHistory::getTime);
+        List<TaskHistory> list = historyService.list(queryWrapper);
+        List<TaskDto> taskDtos = list.stream().map((item)->{
+            TaskDto taskDto = new TaskDto();
+            LambdaQueryWrapper<Task> wrap = new LambdaQueryWrapper<>();
+            wrap.eq(Task::getId,item.getTaskId());
+            Task one1 = this.getOne(wrap);
+            BeanUtils.copyProperties(one1,taskDto);
+            //收藏
+            LambdaQueryWrapper<TaskLike> wrapperQueryWrapper = new LambdaQueryWrapper<>();
+            wrapperQueryWrapper.eq(TaskLike::getTaskId,item.getTaskId());
+            TaskLike one2 = taskLikeService.getOne(wrapperQueryWrapper);
+            if (one2 != null) {
+                //是
+                taskDto.setIsLike(1);
+            }else {
+                //否
+                taskDto.setIsLike(0);
+            }
+            //查该任务分类和类别信息 set到dto
+            String typeId1 = one1.getTypeId();
+            LambdaQueryWrapper<TaskClass> wrapper1 = new LambdaQueryWrapper<>();
+            wrapper1.eq(TaskClass::getId,typeId1);
+            TaskClass one = taskClassService.getOne(wrapper1);
+            taskDto.setClassName(one.getType());
+            String kindId1 = one1.getKindId();
+            LambdaQueryWrapper<Kind> wrapper2=new LambdaQueryWrapper<>();
+            wrapper2.eq(Kind::getId,kindId1);
+            Kind one3 = kindService.getOne(wrapper2);
+            taskDto.setKindName(one3.getName());
+            BeanUtils.copyProperties(one,taskDto);
+            taskDto.setTime(item.getTime());
+            return  taskDto;
+        }).collect(Collectors.toList());
+
+        return taskDtos;
     }
 }

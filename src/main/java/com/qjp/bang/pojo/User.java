@@ -23,4 +23,5 @@ public class User {
     private int credibility;
     private int experience;
     private int permissions;
+    private String background;
 }
