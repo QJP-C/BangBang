@@ -14,11 +14,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.GetMapping;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -156,8 +157,8 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
      * 查分页
      */
     @Override
-    public Page<TaskDto> pageR(int page ,int pageSize ,String condition, String typeId, String kindId,
-                               Integer maxMoney, Integer minMoney, Integer urgent ,Integer moneySort){
+    public Page<TaskDto> pageR(String userId, int page, int pageSize, String condition, String typeId, String kindId,
+                               Integer maxMoney, Integer minMoney, Integer urgent, Integer moneySort){
         //分页构造器对象
         Page<Task> pageInfo = new Page<>(page, pageSize);
         //dto
@@ -167,10 +168,18 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
         wrapper .select()
                 .eq(Task::getState,6)
                 .like(null != condition,Task::getName,condition)
+                .eq(null != typeId,Task::getTypeId,typeId)
+                .eq(null!=kindId,Task ::getKindId,kindId)
+                .ge(null != minMoney,Task::getMoney,minMoney)
+                .le(null!=maxMoney,Task::getMoney,maxMoney)
+                .eq(null!=urgent,Task::getUrgent,urgent)
+                .orderByDesc(null==moneySort,Task::getUpdateTime)
+                .orderByDesc(null!=moneySort&&moneySort.equals(1),Task::getMoney)
+                .orderByAsc(null!=moneySort&&moneySort.equals(0),Task::getMoney)
                 .or()
                 .like(null != condition,Task::getLocation,condition)
-                .like(null != typeId,Task::getTypeId,typeId)
-                .like(null!=kindId,Task ::getKindId,kindId)
+                .eq(null != typeId,Task::getTypeId,typeId)
+                .eq(null!=kindId,Task ::getKindId,kindId)
                 .ge(null != minMoney,Task::getMoney,minMoney)
                 .le(null!=maxMoney,Task::getMoney,maxMoney)
                 .eq(null!=urgent,Task::getUrgent,urgent)
@@ -189,7 +198,8 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
             String id = item.getId();
             //查该用户是否收藏了该任务
             LambdaQueryWrapper<TaskLike> wrapperQueryWrapper = new LambdaQueryWrapper<>();
-            wrapperQueryWrapper.eq(TaskLike::getTaskId,id);
+            wrapperQueryWrapper.eq(TaskLike::getTaskId,id)
+                    .eq(TaskLike ::getUserId,userId );
             TaskLike one2 = taskLikeService.getOne(wrapperQueryWrapper);
             if (one2 != null) {
                 //是
@@ -200,6 +210,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
             }
             //拷贝对象数据
             BeanUtils.copyProperties(item,taskDto);
+
             //查该任务分类和类别信息 set到dto
             String typeId1 = item.getTypeId();
             LambdaQueryWrapper<TaskClass> wrapper1 = new LambdaQueryWrapper<>();
@@ -211,6 +222,8 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
             wrapper2.eq(Kind::getId,kindId1);
             Kind one1 = kindService.getOne(wrapper2);
             taskDto.setKindName(one1.getName());
+            taskDto.setTypeId(item.getTypeId());
+            taskDto.setKindId(item.getKindId());
             return taskDto;
         }).collect(Collectors.toList());
         dtoPage.setRecords(list);
@@ -377,9 +390,36 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
             taskDto.setKindName(one3.getName());
             BeanUtils.copyProperties(one,taskDto);
             taskDto.setTime(item.getTime());
+            taskDto.setId(one1.getId());
             return  taskDto;
         }).collect(Collectors.toList());
 
         return taskDtos;
+    }
+
+    /**
+     * 帮忙详情
+     * @param userId
+     * @return
+     */
+    @Override
+    public Map<String,Integer> taskDis(String userId) {
+        LambdaQueryWrapper<Task> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Task::getUser1Id,userId);
+        int count = this.count(queryWrapper);
+
+        LambdaQueryWrapper<Task> queryWrapper1 = new LambdaQueryWrapper<>();
+        queryWrapper1.eq(Task::getUser2Id,userId);
+        int count1 = this.count(queryWrapper1);
+
+        LambdaQueryWrapper<Task> queryWrapper2 = new LambdaQueryWrapper<>();
+        queryWrapper2.eq(Task::getUser2Id,userId )
+                .eq(Task ::getState,2);
+        int count2 = this.count(queryWrapper2);
+        HashMap<String, Integer> map = new HashMap<>();
+        map.put("fb",count);
+        map.put("bm",count1);
+        map.put("wc",count2);
+        return map;
     }
 }

@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.aliyuncs.utils.StringUtils;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.qjp.bang.common.R;
 import com.qjp.bang.pojo.User;
 import com.qjp.bang.pojo.UserLevel;
@@ -15,6 +16,7 @@ import com.qjp.bang.utils.JWTUtils;
 import com.qjp.bang.utils.MD5Utils;
 import com.qjp.bang.utils.ValidateCodeUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.*;
@@ -181,7 +183,9 @@ public class UserController {
                 user = new User();
                 user.setEmail(email);
                 user.setPassword(s);
-                user.setUsername(ut.getUsername());
+                if(ut.getUsername()!=null){
+                    user.setUsername(ut.getUsername());
+                }
                 user.setHead(ut.getHead());
                 user.setQq(qq);
                 user.setCredibility(1);
@@ -332,9 +336,10 @@ public class UserController {
     public R<String> update(@RequestHeader(value="token") String token,@RequestBody User user) {
         DecodedJWT verify =JWTUtils.verify(token);
         String id = verify.getClaim("id").asString();
-        LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(User::getId, id);
-        userService.update(user, wrapper);
+//        User byId = userService.getById(id);
+        user.setId(id);
+        userService.updateById(user);
+//        userService.updateById(byId);
         return R.success("修改成功");
     }
 

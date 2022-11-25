@@ -16,11 +16,11 @@ public class SendMailServiceImpl implements SendMailService {
     private JavaMailSender javaMailSender;
 
     //发送人
-    private String from = "915950092@qq.com";
+    private final String from = "915950092@qq.com";
 //    //接收人
 //    private String to = "915950092@qq.com";
     //标题
-    private String subject="来自坤坤的验证码";
+    private final String subject="欢迎加入帮帮";
     //正文
 //    private String context="测试正文内容";
 
@@ -32,7 +32,7 @@ public class SendMailServiceImpl implements SendMailService {
     @Override
     public void sendMail(String email,String code) {
         SimpleMailMessage message=new SimpleMailMessage();
-        message.setFrom(from+"(爱坤)");
+        message.setFrom(from+"(帮帮)");
         message.setTo(email);
         message.setSubject(subject);
         message.setText(code);

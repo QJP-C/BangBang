@@ -19,10 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Random;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -158,9 +155,10 @@ public class TaskController {
      */
     @Cacheable(value = "TaskPage",unless = "#result.result.records == null ")
     @GetMapping("/page")
-    public R<Page> pageR(int page ,int pageSize ,String condition, String typeId, String kindId,
+    public R<Page> pageR(@RequestHeader(value="token") String token,int page ,int pageSize ,String condition, String typeId, String kindId,
                          Integer maxMoney, Integer minMoney, Integer urgent,Integer moneySort ){
-        return R.success(taskService.pageR(page, pageSize, condition,typeId,kindId,maxMoney,minMoney,urgent,moneySort));
+        String userId = JWTUtils.verify(token).getClaim("id").asString();
+        return R.success(taskService.pageR(userId,page, pageSize, condition,typeId,kindId,maxMoney,minMoney,urgent,moneySort));
     }
 
     /**
@@ -280,12 +278,19 @@ public class TaskController {
         taskLike.setTaskId(taskId);
         taskLike.setLikeTime(LocalDateTime.now());
         taskLike.setUserId(id);
-        boolean save = taskLikeService.save(taskLike);
-        if (save) {
-            taskService.deleteR();
-            return R.success("收藏成功");
+        LambdaQueryWrapper<TaskLike> wrap = new LambdaQueryWrapper<>();
+        wrap.eq(TaskLike::getTaskId,taskId )
+                        .eq(TaskLike::getUserId,id);
+        TaskLike one = taskLikeService.getOne(wrap);
+        if (one == null) {
+            boolean save = taskLikeService.save(taskLike);
+            if (save) {
+                taskService.deleteR();
+                return R.success("收藏成功");
+            }
+            return R.error("收藏失败");
         }
-        return R.error("收藏失败");
+        return R.error("您已收藏该任务");
     }
     /**
      * 取消收藏
@@ -391,16 +396,27 @@ public class TaskController {
         List<TaskDto> today = taskService.today();
         return R.success(today);
     }
+
     /**
      * 查看个人浏览记录
      */
     @GetMapping("/history")
     public R<List<TaskDto>> allHistory(@RequestHeader(value="token")String token){
-        DecodedJWT verify = JWTUtils.verify(token);
-        String userId = verify.getClaim("id").asString();
+        String userId = JWTUtils.verify(token).getClaim("id").asString();
         List<TaskDto> taskDtos = taskService.allHistory(userId);
         return R.success(taskDtos);
     }
 
+    /**
+     * 帮忙统计
+     * @param token
+     * @return
+     */
+    @GetMapping("/count")
+    public R<Map<String,Integer>> taskDis(@RequestHeader(value="token")String token){
+        String userId = JWTUtils.verify(token).getClaim("id").asString();
+        Map<String, Integer> stringIntegerMap = taskService.taskDis(userId);
+        return R.success(stringIntegerMap);
+    }
 
 }

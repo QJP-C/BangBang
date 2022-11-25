@@ -14,14 +14,14 @@ public class User {
     private String id;
     private String password;
     private String username;
-    private int state;
+    private Integer state;
     private String phone;
-    private int sex;
+    private Integer sex;
     private String qq;
     private String head;
     private LocalDateTime birthday;
-    private int credibility;
-    private int experience;
-    private int permissions;
+    private Integer credibility;
+    private Integer experience;
+    private Integer permissions;
     private String background;
 }
