@@ -312,12 +312,6 @@ class XjbxApplicationTests {
         List<Task> list = taskService.list(wrap);
         log.info(list.toString());
     }
-    @Test
-    void  kmfonm(){
-        String s = "915950092";
-        String s1 = MD5Utils.inputPassToDBPass(s, "915950092");
-        System.out.println(s1);
-        String s2 = MD5Utils.inputPassToDBPass(s, "915950092");
-        System.out.println(s2);
-    }
+
+
 }

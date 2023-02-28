@@ -188,7 +188,7 @@ public class TaskController {
         wrap.eq(Task ::getUser2Id,id);
         List<Task> list = taskService.list(wrap);
         if (list.size() > 0) {
-            List<TaskDto> taskDtos = list.stream().map((item)->{
+            List<TaskDto> taskDtos = list.stream().map(item->{
                 TaskDto taskDto = new TaskDto();
                 BeanUtils.copyProperties(item,taskDto);
                 return taskDto;

@@ -360,7 +360,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
         queryWrapper.eq(TaskHistory ::getUserId,userId)
                 .orderByDesc(TaskHistory::getTime);
         List<TaskHistory> list = historyService.list(queryWrapper);
-        List<TaskDto> taskDtos = list.stream().map((item)->{
+        List<TaskDto> taskDtos = list.stream().map(item->{
             TaskDto taskDto = new TaskDto();
             LambdaQueryWrapper<Task> wrap = new LambdaQueryWrapper<>();
             wrap.eq(Task::getId,item.getTaskId());
