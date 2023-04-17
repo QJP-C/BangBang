@@ -1,12 +1,12 @@
 package com.qjp.bang.utils;
 
-import com.qjp.bang.pojo.ObjectItem;
+
+import com.qjp.bang.entity.ObjectItem;
 import io.minio.*;
 import io.minio.messages.DeleteError;
 import io.minio.messages.DeleteObject;
 import io.minio.messages.Item;
 import org.apache.commons.io.IOUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.annotation.Resource;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,7 +33,7 @@ import java.util.stream.Collectors;
  */
 @Component
 public class MinioUtils {
-    @Autowired
+    @Resource
     private MinioClient minioClient;
 
     @Value("${minio.bucketName}")
@@ -93,7 +94,7 @@ public class MinioUtils {
      * @return: java.lang.String
 
      */
-    public List<String> upload(MultipartFile[] multipartFile) {
+    public List<String> upload(MultipartFile[] multipartFile,String path) {
         List<String> names = new ArrayList<>(multipartFile.length);
         for (MultipartFile file : multipartFile) {
             String fileName = file.getOriginalFilename();
@@ -103,6 +104,7 @@ public class MinioUtils {
             } else {
                 fileName = fileName + System.currentTimeMillis();
             }
+            fileName = path+fileName;
             InputStream in = null;
             try {
                 in = file.getInputStream();
@@ -208,8 +210,7 @@ public class MinioUtils {
      */
     public Iterable<Result<DeleteError>> removeObjects(String bucketName, List<String> objects) {
         List<DeleteObject> dos = objects.stream().map(e -> new DeleteObject(e)).collect(Collectors.toList());
-        Iterable<Result<DeleteError>> results = minioClient.removeObjects(RemoveObjectsArgs.builder().bucket(bucketName).objects(dos).build());
-        return results;
+        return minioClient.removeObjects(RemoveObjectsArgs.builder().bucket(bucketName).objects(dos).build());
     }
 
 

@@ -6,7 +6,7 @@ import java.util.Random;
  * 随机生成验证码工具类
  * @author qjp
  */
-public class  ValidateCodeUtils {
+public class ValidateCodeUtils {
     /**
      * 随机生成验证码
      * @param length 长度为4位或者6位

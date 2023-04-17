@@ -1,9 +1,15 @@
+
 spring:
   profiles:
-    active: yun
 #    active: yun
+    active: loc
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher # 解决swagger与高版本SpringBoot的冲突
+  main:
+    allow-circular-references: true #依赖循环
 server:
-  port: 3326
+  port: 2001
 
 # minio 文件存储配置信息
 
@@ -19,6 +25,18 @@ server:
 #    mode: HTML5
 
 
+swagger:
+  title: "帮帮接口文档"
+  description: "帮帮接口文档"
+  base-package: com.qjp.bang
+  enabled: true
+  version: 1.0.0
+
+markerhub:
+  jwt:
+    secret: ef3af8bea39cb01a963160421b81850c
+    expire: 604800
+    header: Authorization
 
 
 zfb:

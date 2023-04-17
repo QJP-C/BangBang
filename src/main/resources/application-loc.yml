@@ -3,7 +3,8 @@ spring:
   mail:
     host: smtp.qq.com
     username: 915950092@qq.com
-    password: xsydehiaawrgbecf
+#    password: xsydehiaawrgbecf
+    password: llshwdspbllibcah
     port: 465
     default-encoding: UTF-8
     properties:
@@ -24,18 +25,19 @@ spring:
 
   application:
     #应用的名称，可选
-    name: xjbx
+    name: bang
   datasource:
     druid:
       driver-class-name: com.mysql.cj.jdbc.Driver
-      url: jdbc:mysql://localhost:3306/xjbx?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true
+      url: jdbc:mysql://114.116.95.152:3306/bang?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true
       username: root
-      password: 1234
+      password: Qjp202228.
   redis:
     #password:   windows??root@1234  Linux?1234
-    host: localhost
-    database: 0
+    host: 114.116.95.152
+    database: 1
     port: 6379
+    password: 010128
   cache:
     redis:
       time-to-live: 1800000      #设置缓存过期时间  30分钟
@@ -51,6 +53,4 @@ minio:
   endpoint: http://114.116.95.152:9000
   accessKey: 915950092
   secretKey: 20010128
-  bucketName: xjbx
-xjbx:
-  path: E:\xiangmu\xjbx\src\main\resources\static\img\
+  bucketName: bang

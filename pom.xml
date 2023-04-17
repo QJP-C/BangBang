@@ -9,10 +9,10 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.qjp</groupId>
-    <artifactId>xjbx</artifactId>
+    <artifactId>bang</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>xjbx</name>
-    <description>xjbx</description>
+    <name>bang</name>
+    <description>bang</description>
     <properties>
         <java.version>1.8</java.version>
     </properties>
@@ -56,8 +56,6 @@
             <artifactId>commons-codec</artifactId>
         </dependency>
 
-
-        <!--jwt 依赖-->
 
 
         <dependency>
@@ -112,6 +110,30 @@
         <dependency>
             <groupId>redis.clients</groupId>
             <artifactId>jedis</artifactId>
+        </dependency>
+
+        <!-- Spring Boot 集成 swagger -->
+        <!-- https://mvnrepository.com/artifact/com.spring4all/swagger-spring-boot-starter -->
+        <dependency>
+            <groupId>com.spring4all</groupId>
+            <artifactId>swagger-spring-boot-starter</artifactId>
+            <version>1.9.0.RELEASE</version>
+        </dependency>
+
+        <!--JSR303-->
+        <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-validation -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+            <version>3.0.4</version>
+        </dependency>
+
+
+        <dependency>
+            <groupId>net.sf.json-lib</groupId>
+            <artifactId>json-lib</artifactId>
+            <version>2.4</version>
+            <classifier>jdk15</classifier>
         </dependency>
         <!--jwt 依赖-->
         <dependency>
