@@ -55,11 +55,11 @@ public class WebConfig implements WebMvcConfigurer {
         excludePathPatterns.add("/favicon.ico");
         excludePathPatterns.add("/user/login");
         excludePathPatterns.add("/user/send");
-        excludePathPatterns.add("/user/check");
         excludePathPatterns.add("/mo/upload");
         excludePathPatterns.add("/taskClass");
         excludePathPatterns.add("/task/new");
         excludePathPatterns.add("/taskCollect/collect/**");
+        excludePathPatterns.add("/task/one/**");
         excludePathPatterns.add("/gpt");
 
 

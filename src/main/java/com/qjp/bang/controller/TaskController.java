@@ -2,7 +2,7 @@ package com.qjp.bang.controller;
 
 
 import com.qjp.bang.common.R;
-import com.qjp.bang.dto.TaskGetOneResultDto;
+import com.qjp.bang.dto.TaskDetailsResultDto;
 import com.qjp.bang.dto.TaskNewDto;
 import com.qjp.bang.service.TaskClassService;
 import com.qjp.bang.service.TaskService;
@@ -39,15 +39,18 @@ public class TaskController {
     @PostMapping("new")
 //    public R<String> newTask(@RequestHeader("Authorization") String header, @NotBlank @RequestBody TaskNewDto taskNewDto){
 //        String openid = jwtUtil.getOpenidFromToken(header);
-        public R<String> newTask(@NotBlank @RequestBody TaskNewDto taskNewDto){
+    public R<String> newTask(@NotBlank @RequestBody TaskNewDto taskNewDto) {
         String openid = "oI1vd5DC3H0lVyJizpK58ZPS9Mz8";
-        return taskService.newTask(openid,taskNewDto);
+        return taskService.newTask(openid, taskNewDto);
     }
 
     @ApiOperation("任务详情")
-    @GetMapping("/one")
-    public R<TaskGetOneResultDto> taskDetails(){
-        return null;
+    @GetMapping("/one/{taskId}")
+//    public R<TaskDetailsResultDto> taskDetails(@RequestHeader("Authorization") String header){
+//        String openid = jwtUtil.getOpenidFromToken(header);
+    public R<TaskDetailsResultDto> taskDetails(@PathVariable("taskId") String taskId){
+        String openid = "oI1vd5DC3H0lVyJizpK58ZPS9Mz8";
+        return taskService.taskDetails(openid,taskId);
     }
 
 }

@@ -20,8 +20,6 @@ import lombok.ToString;
 public class TaskClass {
     //id
     private Integer id;
-    //父节点id 0为根节点
-    private Integer father;
     //名称
     private String name;
 

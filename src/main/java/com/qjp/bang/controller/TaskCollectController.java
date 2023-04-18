@@ -27,12 +27,12 @@ public class TaskCollectController {
     @Resource
     JwtUtil jwtUtil;
 
-    @ApiOperation("收藏任务")
+    @ApiOperation("收藏/取消收藏")
     @GetMapping("collect/{taskId}")
-//    public R<String> likeTask(@RequestHeader("Authorization") String header, @PathVariable("taskId")String taskId){
-//        String myOpenid = jwtUtil.getOpenidFromToken(header);
-    public R<String> likeTask(@PathVariable("taskId") String taskId) {
-        String openid = "oI1vd5DC3H0lVyJizpK58ZPS9Mz8";
+    public R<String> likeTask(@RequestHeader("Authorization") String header, @PathVariable("taskId")String taskId){
+        String openid = jwtUtil.getOpenidFromToken(header);
+//    public R<String> likeTask(@PathVariable("taskId") String taskId) {
+//        String openid = "oI1vd5DC3H0lVyJizpK58ZPS9Mz8";
         return taskCollectService.likeTask(openid, taskId);
     }
 }

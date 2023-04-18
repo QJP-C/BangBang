@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 
 @Data
 @ApiModel("任务详情参数")
-public class TaskGetOneResultDto {
+public class TaskDetailsResultDto {
 
     //发布人id
     @ApiModelProperty("发布人id")
@@ -37,15 +37,15 @@ public class TaskGetOneResultDto {
     //是否加急  1:加急  0:不急
     @ApiModelProperty("是否加急  1:加急  0:不急")
     private Integer urgent;
+    //是否收藏   1:已收藏  2:未收藏
+    @ApiModelProperty("是否收藏   1:已收藏  2:未收藏")
+    private Integer isLike;
     //任务状态   1:已发布  2:已接取  3:已完成   0:已逾期
     @ApiModelProperty("任务状态   1:已发布  2:已接取  3:已完成   0:已逾期")
     private Integer state;
-    //叶类型名称
-    @ApiModelProperty("叶类型名称")
-    private String sonName;
-    //父类型名称
-    @ApiModelProperty("父亲类型名称")
-    private String fatherName;
+    //类型名称
+    @ApiModelProperty("类型名称")
+    private String type;
     //赏金
     @ApiModelProperty("赏金")
     private Double money;
@@ -58,4 +58,10 @@ public class TaskGetOneResultDto {
     //截止时间
     @ApiModelProperty("截止时间")
     private LocalDateTime limitTime;
+    //任务附件
+    @ApiModelProperty("任务附件")
+    private String[] fromUrls;
+    //提交附件
+    @ApiModelProperty("提交附件")
+    private String[] toUrls;
 }

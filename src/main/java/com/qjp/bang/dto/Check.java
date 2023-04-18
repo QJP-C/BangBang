@@ -8,7 +8,7 @@ import lombok.Data;
 @ApiModel("校验参数")
 public class Check {
     @ApiModelProperty("手机号码")
-    public  String phone;
+    public String phone;
     @ApiModelProperty("验证码")
-    public  String code;
+    public String code;
 }

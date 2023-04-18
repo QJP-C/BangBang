@@ -1,15 +1,14 @@
 package com.qjp.bang.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.qjp.bang.common.R;
+import com.qjp.bang.dto.TaskDetailsResultDto;
 import com.qjp.bang.dto.TaskNewDto;
-import com.qjp.bang.entity.File;
-import com.qjp.bang.entity.Task;
+import com.qjp.bang.entity.*;
 import com.qjp.bang.exception.BangException;
 import com.qjp.bang.mapper.TaskMapper;
-import com.qjp.bang.service.FileService;
-import com.qjp.bang.service.TaskClassService;
-import com.qjp.bang.service.TaskService;
+import com.qjp.bang.service.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -19,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static com.qjp.bang.common.Constants.REDIS_COUNTDOWN_KEY;
@@ -34,6 +34,8 @@ import static com.qjp.bang.common.Constants.REDIS_COUNTDOWN_KEY;
 public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements TaskService {
 
     @Resource
+    private UserService userService;
+    @Resource
     private TaskMapper taskMapper;
     @Resource
     private TaskClassService taskClassService;
@@ -41,7 +43,15 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
     private FileService fileService;
     @Resource
     private RedisTemplate redisTemplate;
+    @Resource
+    private TaskCollectService taskCollectService;
 
+    /**
+     * 发布任务
+     * @param openid
+     * @param taskNewDto
+     * @return
+     */
     @Override
     @Transactional
     public R<String> newTask(String openid, TaskNewDto taskNewDto) {
@@ -73,6 +83,98 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
             }
         }
         return R.success("发布成功");
+    }
+
+    /**
+     * 任务详情
+     * @param openid
+     * @param taskId
+     * @return
+     */
+    @Override
+    public R<TaskDetailsResultDto> taskDetails(String openid, String taskId) {
+        Task task = this.getById(taskId);
+        TaskDetailsResultDto dto = new TaskDetailsResultDto();
+        BeanUtils.copyProperties(task,dto);
+        //该任务当前用户是否收藏
+        int like = isLike(openid, taskId);
+        dto.setIsLike(like);
+        //用户信息
+        String[] fromUserInfo = userInfo(task.getFromId());
+        dto.setFromHead(fromUserInfo[0]);
+        dto.setFromName(fromUserInfo[1]);
+        //分类信息
+        dto.setType(className(task.getType()));
+        //获取附件url
+        String[] fromFiles = files(taskId, "1");
+        if (fromFiles!=null){
+            dto.setFromUrls(fromFiles);
+        }
+
+        if (task.getToId()!= null){//没有接单人
+            String[] toFiles = files(taskId, "2");
+            if (toFiles!=null){
+                dto.setToUrls(toFiles);
+            }
+            String[] toUserInfo = userInfo(task.getToId());
+            dto.setToHead(toUserInfo[0]);
+            dto.setToName(toUserInfo[1]);
+        }
+        return R.success(dto);
+    }
+
+    /**
+     * 获取文件数组
+     * @param taskId
+     * @param beLong
+     * @return
+     */
+    private String[] files(String taskId, String beLong){
+        LambdaQueryWrapper<File> qw = new LambdaQueryWrapper<>();
+        qw.eq(File::getAboutId,taskId).eq(File::getBelong,beLong);
+        int count = fileService.count();
+        if (count<=0){
+            return null;
+        }
+        List<File> list = fileService.list(qw);
+        String[] res = new String[list.size()];
+        for (int i = 0; i < res.length; i++) {
+            res[i] = list.get(i).getUrl();
+        }
+        return res;
+    }
+
+    /**
+     * 获取该订单分类名称
+     * @param typeId
+     * @return
+     */
+    private String className(int typeId){
+        TaskClass son = taskClassService.getById(typeId);
+        return son.getName();
+    }
+
+
+    /**
+     * 查找用户基本信息
+     * @param openid
+     * @return
+     */
+    private String[] userInfo(String openid){
+        User user = userService.getById(openid);
+        return new String[]{user.getHead(),user.getUsername()};
+    }
+
+    /**
+     * 获取该用户是否收藏该任务
+     * @param openid
+     * @param taskId
+     * @return
+     */
+    private int isLike(String openid, String taskId) {
+        LambdaQueryWrapper<TaskCollect> qw = new LambdaQueryWrapper<>();
+        qw.eq(TaskCollect::getUserId, openid).eq(TaskCollect::getTaskId, taskId);
+        return taskCollectService.count(qw);
     }
 
     /**

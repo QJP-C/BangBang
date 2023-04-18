@@ -2,7 +2,7 @@ package com.qjp.bang.controller;
 
 
 import com.qjp.bang.common.R;
-import com.qjp.bang.dto.TaskClassDto;
+import com.qjp.bang.entity.TaskClass;
 import com.qjp.bang.service.TaskClassService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiModelProperty;
@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
-import java.util.Map;
+import java.util.List;
 
 /**
  * (TaskClass)表控制层
@@ -33,7 +33,7 @@ public class TaskClassController {
 
     @ApiModelProperty("获取任务分类")
     @GetMapping
-    public R<Map<Integer, TaskClassDto>> getType() {
+    public R<List<TaskClass>> getType() {
         return taskClassService.getType();
     }
 }

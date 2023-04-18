@@ -77,7 +77,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BangException.class)
     public R<String> exceptionHandler(BangException ex){
         log.error(ex.getMessage());
-
         return R.error(ex.getMessage() );
     }
 }
