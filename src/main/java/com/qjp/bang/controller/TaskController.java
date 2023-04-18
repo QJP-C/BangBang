@@ -2,6 +2,7 @@ package com.qjp.bang.controller;
 
 
 import com.qjp.bang.common.R;
+import com.qjp.bang.dto.TaskGetOneResultDto;
 import com.qjp.bang.dto.TaskNewDto;
 import com.qjp.bang.service.TaskClassService;
 import com.qjp.bang.service.TaskService;
@@ -36,9 +37,17 @@ public class TaskController {
 
     @ApiOperation("新增任务")
     @PostMapping("new")
-    public R<String> newTask(@RequestHeader("Authorization") String header, @NotBlank @RequestBody TaskNewDto taskNewDto){
-        String openid = jwtUtil.getOpenidFromToken(header);
+//    public R<String> newTask(@RequestHeader("Authorization") String header, @NotBlank @RequestBody TaskNewDto taskNewDto){
+//        String openid = jwtUtil.getOpenidFromToken(header);
+        public R<String> newTask(@NotBlank @RequestBody TaskNewDto taskNewDto){
+        String openid = "oI1vd5DC3H0lVyJizpK58ZPS9Mz8";
         return taskService.newTask(openid,taskNewDto);
+    }
+
+    @ApiOperation("任务详情")
+    @GetMapping("/one")
+    public R<TaskGetOneResultDto> taskDetails(){
+        return null;
     }
 
 }
