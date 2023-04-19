@@ -25,4 +25,6 @@ public class UserUpdate {
     //主页背景
     @ApiModelProperty("主页背景url")
     private String background;
+    @ApiModelProperty("签名")
+    private String signature;
 }

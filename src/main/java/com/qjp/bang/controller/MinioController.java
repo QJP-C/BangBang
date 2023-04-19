@@ -1,5 +1,6 @@
 package com.qjp.bang.controller;
 
+import com.qjp.bang.common.R;
 import com.qjp.bang.utils.MinioUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -12,7 +13,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author qjp
@@ -37,12 +41,32 @@ public class MinioController {
      */
     @ApiOperation("文件上传")
     @PostMapping("/upload")
-    public String upload(MultipartFile file) {
+    public R<Map<String, String>> upload(MultipartFile file) {
         List<String> upload = minioUtils.upload(new MultipartFile[]{file},"photo/");
         String path = address +"/"+bucketName+"/"+upload.get(0);
         log.info("head:[{}]",path);
-        return path;
+        HashMap<String, String> map = new HashMap<>();
+        map.put("url",path);
+        return R.success(map);
     }
 
+
+    @ApiOperation("批量文件上传")
+    @PostMapping("/uploads")
+    public R<List<String>> uploads(MultipartFile[] files){
+//            try {
+                List<String> list = new ArrayList<>();
+                for (MultipartFile file:files){
+                    List<String> upload = minioUtils.upload(new MultipartFile[]{file},"photo/");
+                    String path = address +"/"+bucketName+"/"+upload.get(0);
+                    list.add(path);
+                }
+                return R.success(list);
+            }
+//            catch (Exception e){
+//                log.error("上传异常：{}",e.getMessage());
+//                return R.error("上传异常！{}");
+//            }
+//        }
 }
 

@@ -2,6 +2,7 @@ package com.qjp.bang.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.qjp.bang.common.R;
+import com.qjp.bang.dto.TaskNewClassDto;
 import com.qjp.bang.entity.TaskClass;
 
 import java.util.List;
@@ -15,5 +16,7 @@ import java.util.List;
 public interface TaskClassService extends IService<TaskClass> {
 
     R<List<TaskClass>> getType();
+
+    R<String> newClass(TaskNewClassDto taskNewClassDto);
 }
 

@@ -46,7 +46,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     RedisTemplate redisTemplate;
 
     @Autowired
-    private UserFollowService userFollowService;
+    private UserFollowService userFollowService;               
 
     /**
      * 微信登陆
@@ -157,6 +157,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     public R<String> check(String openid, String phone, String code) {
         String codeInRedis = (String) redisTemplate.opsForValue().get(phone);
         User user = new User();
+        user.setId(openid);
         user.setPhone(phone);
         this.updateById(user);
         return codeInRedis.equals(code) ?  R.success("验证码正确") : R.error("验证码错误");

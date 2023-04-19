@@ -4,12 +4,14 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.qjp.bang.common.R;
 import com.qjp.bang.dto.TaskDetailsResultDto;
+import com.qjp.bang.dto.TaskListResDto;
 import com.qjp.bang.dto.TaskNewDto;
 import com.qjp.bang.entity.*;
 import com.qjp.bang.exception.BangException;
 import com.qjp.bang.mapper.TaskMapper;
 import com.qjp.bang.service.*;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static com.qjp.bang.common.Constants.REDIS_COUNTDOWN_KEY;
 
@@ -45,6 +48,8 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
     private RedisTemplate redisTemplate;
     @Resource
     private TaskCollectService taskCollectService;
+    @Resource
+    private TaskHistoryService taskHistoryService;
 
     /**
      * 发布任务
@@ -120,7 +125,121 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
             dto.setToHead(toUserInfo[0]);
             dto.setToName(toUserInfo[1]);
         }
+
+        //保存历史足迹
+        taskHistoryService.addHistory(openid,taskId);
+
         return R.success(dto);
+    }
+
+    /**
+     * 任务列表
+     * @param openid
+     * @param typeId
+     * @param search
+     * @return
+     */
+    @Override
+    public R<List<TaskListResDto>> taskList(String openid, String typeId, String search) {
+        LambdaQueryWrapper<Task> qw = new LambdaQueryWrapper<>();
+        if (typeId!=null){
+            qw.eq(Task::getType,typeId);
+        }
+
+        if (search!=null){
+            qw.like(Task::getLocation,search)
+                    .or()
+                    .like(Task::getDetails,search)
+                    .or()
+                    .like(Task::getTitle,search);
+        }
+        return getListR(openid, qw);
+    }
+
+    /**
+     * 我的发布
+     * @param openid
+     * @param status
+     * @return
+     */
+    @Override
+    public R<List<TaskListResDto>> myList(String openid, Integer status) {
+        LambdaQueryWrapper<Task> qw = new LambdaQueryWrapper<>();
+        qw.eq(Task::getFromId,openid);
+        if (status!=null){
+            qw.eq(Task::getState,status);
+        }
+        return getListR(openid, qw);
+    }
+
+    /**
+     * 我的足迹
+     * @param openid
+     * @return
+     */
+    @Override
+    public R<List<TaskListResDto>> history(String openid) {
+        LambdaQueryWrapper<TaskHistory> qw = new LambdaQueryWrapper<>();
+        qw.eq(TaskHistory::getUserId,openid);
+        qw.orderByDesc(TaskHistory::getBrowseTime);
+        List<TaskListResDto> list = taskHistoryService.list(qw).stream().map(i -> {
+            Task task = this.getById(i.getTaskId());
+            TaskListResDto dto = new TaskListResDto();
+            BeanUtils.copyProperties(task, dto);
+            String head = userInfo(task.getFromId())[0];
+            dto.setHead(head);
+            int like = isLike(openid, task.getId());
+            dto.setIsLike(like);
+            return dto;
+        }).collect(Collectors.toList());
+
+        return R.success(list);
+    }
+
+    /**
+     * 我的收藏
+     * @param openid
+     * @return
+     */
+    @Override
+    public R<List<TaskListResDto>> myLike(String openid) {
+        LambdaQueryWrapper<TaskCollect> qw = new LambdaQueryWrapper<>();
+        qw.eq(TaskCollect::getUserId,openid).orderByDesc(TaskCollect::getCollectTime);
+
+        List<TaskListResDto> list = taskCollectService.list(qw).stream().map(i -> {
+            Task task = this.getById(i.getTaskId());
+            TaskListResDto dto = new TaskListResDto();
+            BeanUtils.copyProperties(task, dto);
+            String head = userInfo(task.getFromId())[0];
+            dto.setHead(head);
+            int like = isLike(openid, task.getId());
+            dto.setIsLike(like);
+            return dto;
+        }).collect(Collectors.toList());
+        return R.success(list);
+    }
+
+    /**
+     * 获取列表
+     * @param openid
+     * @param qw
+     * @return
+     */
+    @NotNull
+    private R<List<TaskListResDto>> getListR(String openid, LambdaQueryWrapper<Task> qw) {
+        qw.orderByDesc(Task::getReleaseTime);
+        List<Task> list = this.list(qw);
+        List<TaskListResDto> res = list.stream().map(task -> {
+            TaskListResDto dto = new TaskListResDto();
+            BeanUtils.copyProperties(task, dto);
+            String head = userInfo(task.getFromId())[0];
+            dto.setHead(head);
+            int like = isLike(openid, task.getId());
+            dto.setIsLike(like);
+            return dto;
+        }).collect(Collectors.toList());
+
+        return R.success(res);
     }
 
     /**
@@ -149,7 +268,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
      * @param typeId
      * @return
      */
-    private String className(int typeId){
+    private String className(String typeId){
         TaskClass son = taskClassService.getById(typeId);
         return son.getName();
     }

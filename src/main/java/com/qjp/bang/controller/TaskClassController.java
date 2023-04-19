@@ -2,14 +2,12 @@ package com.qjp.bang.controller;
 
 
 import com.qjp.bang.common.R;
+import com.qjp.bang.dto.TaskNewClassDto;
 import com.qjp.bang.entity.TaskClass;
 import com.qjp.bang.service.TaskClassService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiModelProperty;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -35,6 +33,12 @@ public class TaskClassController {
     @GetMapping
     public R<List<TaskClass>> getType() {
         return taskClassService.getType();
+    }
+
+    @ApiModelProperty("新增分类")
+    @PostMapping("new")
+    public R<String> newClass(@RequestBody TaskNewClassDto taskNewClassDto){
+        return taskClassService.newClass(taskNewClassDto);
     }
 }
 
