@@ -1,6 +1,7 @@
 package com.qjp.bang.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.qjp.bang.common.R;
 import com.qjp.bang.dto.TaskDetailsResultDto;
@@ -134,13 +135,17 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
 
     /**
      * 任务列表
+     *
      * @param openid
      * @param typeId
      * @param search
+     * @param page
+     * @param pageSize
      * @return
      */
     @Override
-    public R<List<TaskListResDto>> taskList(String openid, String typeId, String search) {
+    public R<List<TaskListResDto>> taskList(String openid, String typeId, String search, int page, int pageSize) {
+
         LambdaQueryWrapper<Task> qw = new LambdaQueryWrapper<>();
         if (typeId!=null){
             qw.eq(Task::getType,typeId);
@@ -153,44 +158,48 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
                     .or()
                     .like(Task::getTitle,search);
         }
-        return getListR(openid, qw);
+        return getListR(openid, qw,page,pageSize);
     }
 
     /**
      * 我的发布
+     *
      * @param openid
      * @param status
+     * @param page
+     * @param pageSize
      * @return
      */
     @Override
-    public R<List<TaskListResDto>> myList(String openid, Integer status) {
+    public R<List<TaskListResDto>> myList(String openid, Integer status, int page, int pageSize) {
         LambdaQueryWrapper<Task> qw = new LambdaQueryWrapper<>();
         qw.eq(Task::getFromId,openid);
         if (status!=null){
             qw.eq(Task::getState,status);
         }
-        return getListR(openid, qw);
+        return getListR(openid, qw,page,pageSize);
     }
 
     /**
      * 我的足迹
+     *
      * @param openid
+     * @param page
+     * @param pageSize
      * @return
      */
     @Override
-    public R<List<TaskListResDto>> history(String openid) {
+    public R<List<TaskListResDto>> history(String openid, int page, int pageSize) {
+        //分页构造器对象
+        Page<TaskHistory> pageInfo = new Page<>(page, pageSize);
         LambdaQueryWrapper<TaskHistory> qw = new LambdaQueryWrapper<>();
         qw.eq(TaskHistory::getUserId,openid);
         qw.orderByDesc(TaskHistory::getBrowseTime);
-        List<TaskListResDto> list = taskHistoryService.list(qw).stream().map(i -> {
+        taskHistoryService.page(pageInfo,qw);
+        List<TaskHistory> records = pageInfo.getRecords();
+        List<TaskListResDto> list = records.stream().map(i -> {
             Task task = this.getById(i.getTaskId());
-            TaskListResDto dto = new TaskListResDto();
-            BeanUtils.copyProperties(task, dto);
-            String head = userInfo(task.getFromId())[0];
-            dto.setHead(head);
-            int like = isLike(openid, task.getId());
-            dto.setIsLike(like);
-            return dto;
+            return getTaskListResDto(openid, task);
         }).collect(Collectors.toList());
 
         return R.success(list);
@@ -198,23 +207,23 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
 
     /**
      * 我的收藏
+     *
      * @param openid
+     * @param page
+     * @param pageSize
      * @return
      */
     @Override
-    public R<List<TaskListResDto>> myLike(String openid) {
+    public R<List<TaskListResDto>> myLike(String openid, int page, int pageSize) {
+        //分页构造器对象
+        Page<TaskCollect> pageInfo = new Page<>(page, pageSize);
         LambdaQueryWrapper<TaskCollect> qw = new LambdaQueryWrapper<>();
         qw.eq(TaskCollect::getUserId,openid).orderByDesc(TaskCollect::getCollectTime);
-
-        List<TaskListResDto> list = taskCollectService.list(qw).stream().map(i -> {
+        taskCollectService.page(pageInfo,qw);
+        List<TaskCollect> records = pageInfo.getRecords();
+        List<TaskListResDto> list = records.stream().map(i -> {
             Task task = this.getById(i.getTaskId());
-            TaskListResDto dto = new TaskListResDto();
-            BeanUtils.copyProperties(task, dto);
-            String head = userInfo(task.getFromId())[0];
-            dto.setHead(head);
-            int like = isLike(openid, task.getId());
-            dto.setIsLike(like);
-            return dto;
+            return getTaskListResDto(openid, task);
         }).collect(Collectors.toList());
         return R.success(list);
     }
@@ -226,20 +235,34 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
      * @return
      */
     @NotNull
-    private R<List<TaskListResDto>> getListR(String openid, LambdaQueryWrapper<Task> qw) {
+    private R<List<TaskListResDto>> getListR(String openid, LambdaQueryWrapper<Task> qw, int page, int pageSize) {
+        //分页构造器对象
+        Page<Task> pageInfo = new Page<>(page, pageSize);
         qw.orderByDesc(Task::getReleaseTime);
-        List<Task> list = this.list(qw);
+        this.page(pageInfo,qw);
+        List<Task> list = pageInfo.getRecords();
         List<TaskListResDto> res = list.stream().map(task -> {
-            TaskListResDto dto = new TaskListResDto();
-            BeanUtils.copyProperties(task, dto);
-            String head = userInfo(task.getFromId())[0];
-            dto.setHead(head);
-            int like = isLike(openid, task.getId());
-            dto.setIsLike(like);
-            return dto;
+            return getTaskListResDto(openid, task);
         }).collect(Collectors.toList());
 
         return R.success(res);
+    }
+
+    /**
+     * 获取任务相关信息
+     * @param openid
+     * @param task
+     * @return
+     */
+    @NotNull
+    private TaskListResDto getTaskListResDto(String openid, Task task) {
+        TaskListResDto dto = new TaskListResDto();
+        BeanUtils.copyProperties(task, dto);
+        String head = userInfo(task.getFromId())[0];
+        dto.setHead(head);
+        int like = isLike(openid, task.getId());
+        dto.setIsLike(like);
+        return dto;
     }
 
     /**

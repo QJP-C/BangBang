@@ -33,7 +33,7 @@ public class MinioController {
     private String bucketName;
     //    @Value("${minio.endpoint}")
     //    private String address;
-    private final String address = "http://114.116.95.152:9000";
+    private final String address = "http://qjpqjp.top:9000";
     /**
      * 上传
      * @param file

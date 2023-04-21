@@ -21,12 +21,12 @@ public interface TaskService extends IService<Task> {
 
     R<TaskDetailsResultDto> taskDetails(String openid, String taskId);
 
-    R<List<TaskListResDto>> taskList(String openid, String typeId, String search);
+    R<List<TaskListResDto>> taskList(String openid, String typeId, String search, int page, int pageSize);
 
-    R<List<TaskListResDto>> myList(String openid, Integer status);
+    R<List<TaskListResDto>> myList(String openid, Integer status, int page, int pageSize);
 
-    R<List<TaskListResDto>> history(String openid);
+    R<List<TaskListResDto>> history(String openid, int page, int pageSize);
 
-    R<List<TaskListResDto>> myLike(String openid);
+    R<List<TaskListResDto>> myLike(String openid, int page, int pageSize);
 }
 

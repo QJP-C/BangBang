@@ -4,6 +4,7 @@ package com.qjp.bang.controller;
 import com.qjp.bang.common.R;
 import com.qjp.bang.service.TaskCollectService;
 import com.qjp.bang.utils.JwtUtil;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,6 +18,7 @@ import javax.annotation.Resource;
  */
 @RestController
 @RequestMapping("taskCollect")
+@Api(value = "任务收藏相关",tags = "任务收藏相关")
 public class TaskCollectController {
     /**
      * 服务对象
@@ -31,8 +33,6 @@ public class TaskCollectController {
     @GetMapping("collect/{taskId}")
     public R<String> likeTask(@RequestHeader("Authorization") String header, @PathVariable("taskId")String taskId){
         String openid = jwtUtil.getOpenidFromToken(header);
-//    public R<String> likeTask(@PathVariable("taskId") String taskId) {
-//        String openid = "oI1vd5DC3H0lVyJizpK58ZPS9Mz8";
         return taskCollectService.likeTask(openid, taskId);
     }
 }

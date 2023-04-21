@@ -41,50 +41,59 @@ public class TaskController {
 
     @ApiOperation("新增任务")
     @PostMapping("new")
-    public R<String> newTask(@RequestHeader("Authorization") String header, @NotBlank @RequestBody TaskNewDto taskNewDto){
+    public R<String> newTask(@RequestHeader("Authorization") String header, @NotBlank @RequestBody TaskNewDto taskNewDto) {
         String openid = jwtUtil.getOpenidFromToken(header);
         return taskService.newTask(openid, taskNewDto);
     }
 
     @ApiOperation("任务详情")
     @GetMapping("/one/{taskId}")
-    public R<TaskDetailsResultDto> taskDetails(@RequestHeader("Authorization") String header,@PathVariable("taskId") String taskId){
+    public R<TaskDetailsResultDto> taskDetails(@RequestHeader("Authorization") String header, @PathVariable("taskId") String taskId) {
         String openid = jwtUtil.getOpenidFromToken(header);
-        return taskService.taskDetails(openid,taskId);
+        return taskService.taskDetails(openid, taskId);
     }
 
     @ApiOperation("任务列表")
-    @GetMapping("List")
-    public R<List<TaskListResDto>> getList(@RequestHeader("Authorization") String header,
-                                           @RequestParam(value = "typeId",required = false)String typeId,
-                                            @RequestParam(value = "search",required = false) String search
-    ){
+    @GetMapping("taskList")
+    public R<List<TaskListResDto>> getLists(@RequestHeader("Authorization") String header,
+                                           @RequestParam("page") int page,
+                                           @RequestParam("pageSize") int pageSize,
+                                           @RequestParam(value = "typeId", required = false) String typeId,
+                                           @RequestParam(value = "search", required = false) String search) {
         log.info("进来了");
         String openid = jwtUtil.getOpenidFromToken(header);
-        return taskService.taskList(openid,typeId,search);
+        return taskService.taskList(openid, typeId, search, page, pageSize);
     }
+
 
 
     @ApiOperation("我的发布")
     @GetMapping("myList")
     public R<List<TaskListResDto>> myList(@RequestHeader("Authorization") String header,
-                                @RequestParam(value = "status",required = false)Integer status){
+                                          @RequestParam(value = "status", required = false) Integer status,
+                                          @RequestParam(value = "page") int page,
+                                          @RequestParam(value = "pageSize") int pageSize) {
         String openid = jwtUtil.getOpenidFromToken(header);
-        return taskService.myList(openid,status);
+        return taskService.myList(openid, status,page,pageSize);
     }
 
     @ApiOperation("我的足迹")
     @GetMapping("history")
-    public R<List<TaskListResDto>> history(@RequestHeader("Authorization") String header){
+    public R<List<TaskListResDto>> history(@RequestHeader("Authorization") String header,
+                                           @RequestParam(value = "page") int page,
+                                           @RequestParam(value = "pageSize") int pageSize) {
         String openid = jwtUtil.getOpenidFromToken(header);
-        return taskService.history(openid);
+        return taskService.history(openid,page,pageSize);
     }
 
     @ApiOperation("我的收藏")
     @GetMapping("like")
-    public R<List<TaskListResDto>> myLike(@RequestHeader("Authorization") String header) {
+    public R<List<TaskListResDto>> myLike(@RequestHeader("Authorization") String header,
+                                          @RequestParam(value = "page") int page,
+                                          @RequestParam(value = "pageSize") int pageSize) {
         String openid = jwtUtil.getOpenidFromToken(header);
-        return taskService.myLike(openid);
+        return taskService.myLike(openid,page,pageSize);
     }
+
 }
 

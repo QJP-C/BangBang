@@ -30,7 +30,7 @@ public class JwtInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler){
         //如果是预检请求，手动加上请求状态200
-        log.error("拦截到路径：{}",request.getRequestURI());
+        log.info("拦截到路径：{}",request.getRequestURI());
         if (request.getMethod().equals(RequestMethod.OPTIONS.name())) {
             response.setStatus(HttpStatus.OK.value());
             return true;
@@ -41,7 +41,11 @@ public class JwtInterceptor implements HandlerInterceptor {
             jwtUtil.verifyToken(token); //校验token
             String openid = jwtUtil.getOpenidFromToken(token);
             String tokenRedis = Objects.requireNonNull(redisTemplate.opsForValue().get(openid)).toString();
-            return tokenRedis.equals(token); //放行请求
+            boolean equals = tokenRedis.equals(token);
+            if (equals) return true;
+            BangException.cast("token过期！");
+            response.setStatus(508);
+            return false;//放行请求
         }catch (ExpiredJwtException e){
             e.printStackTrace();
             throw new BangException("token过期！");

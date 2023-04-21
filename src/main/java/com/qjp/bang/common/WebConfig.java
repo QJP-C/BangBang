@@ -57,12 +57,13 @@ public class WebConfig implements WebMvcConfigurer {
         excludePathPatterns.add("/user/send");
         excludePathPatterns.add("/mo/upload");
         excludePathPatterns.add("/mo/uploads");
-        excludePathPatterns.add("/taskClass");
-        excludePathPatterns.add("/taskClass/new");
-        excludePathPatterns.add("/task/new");
-        excludePathPatterns.add("/taskCollect/collect/**");
+//        excludePathPatterns.add("/taskClass");
+//        excludePathPatterns.add("/taskClass/new");
+//        excludePathPatterns.add("/task/new");
+//        excludePathPatterns.add("/taskCollect/collect/**");
         excludePathPatterns.add("/task/one/**");
         excludePathPatterns.add("/gpt");
+        excludePathPatterns.add("/task/test");
 
 
         registry.addInterceptor(getJwtInterceptor())

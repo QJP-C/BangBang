@@ -1,9 +1,12 @@
 package com.qjp.bang;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.qjp.bang.dto.UserUpdate;
+import com.qjp.bang.entity.Task;
 import com.qjp.bang.entity.User;
 import com.qjp.bang.service.TaskClassService;
+import com.qjp.bang.service.TaskService;
 import com.qjp.bang.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
@@ -13,6 +16,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.RedisTemplate;
 
 import javax.annotation.Resource;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -24,6 +28,8 @@ class BangApplicationTests {
     @Resource
     private UserService userService;
 
+    @Resource
+    private TaskService taskService;
     @Test
     void csss() {
         UserUpdate userUpdate = new UserUpdate();
@@ -95,6 +101,27 @@ class BangApplicationTests {
         user.setId("oI1vd5DC3H0lVyJizpK58ZPS9Mz8");
         user.setPhone("121161611");
         userService.updateById(user);
+    }
+
+    @Test
+    void redissss(){
+        String key = "topicTest";
+        String cishu = "topicTest";
+        boolean member = redisTemplate.opsForSet().isMember(key, cishu);
+        System.out.println(member);
+    }
+
+    @Test
+    void testPage(){
+        //分页构造器对象
+        LambdaQueryWrapper<Task> qw = new LambdaQueryWrapper<>();
+        Page<Task> pageInfo = new Page<>(1, 2);
+        qw.orderByDesc(Task::getReleaseTime);
+        taskService.page(pageInfo,qw);
+        System.out.println(pageInfo.getRecords());
+        List<Task> list = pageInfo.getRecords();
+//        BeanUtils.copyProperties(pageInfo,list);
+        list.forEach(System.out::println);
     }
 }
 
