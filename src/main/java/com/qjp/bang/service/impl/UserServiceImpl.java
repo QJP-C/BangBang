@@ -9,6 +9,7 @@ import com.qjp.bang.mapper.UserMapper;
 import com.qjp.bang.dto.UserMyInfo;
 import com.qjp.bang.entity.User;
 import com.qjp.bang.dto.UserUpdate;
+import com.qjp.bang.service.PostLikeService;
 import com.qjp.bang.service.SendSms;
 import com.qjp.bang.service.UserFollowService;
 import com.qjp.bang.service.UserService;
@@ -44,6 +45,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Resource
     RedisTemplate redisTemplate;
+
+    @Resource
+    PostLikeService postLikeService;
 
     @Autowired
     private UserFollowService userFollowService;               
@@ -172,9 +176,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     public R<UserMyInfo> myInfo(String id) {
         User user = this.getById(id);
         UserMyInfo userMyInfo = new UserMyInfo();
-        userMyInfo.setFans(0);
-        userMyInfo.setNice(0);
-        userMyInfo.setFollow(0);
+        //TODO 获取被赞数
+        Long likeNum = postLikeService.getUserLikeNum(id);
+        userMyInfo.setNice(likeNum);
+        //获取关注数
+        Long followNum = userFollowService.userFollowNum(id);
+        userMyInfo.setFollow(followNum);
+        //获取粉丝数
+        Long fansNum = userFollowService.userFansNum(id);
+        userMyInfo.setFans(fansNum);
         BeanUtils.copyProperties(user,userMyInfo);
         return R.success(userMyInfo);
     }
@@ -201,9 +211,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (count>0){
             userInfo.setIsFollow(true);
         }
-        userInfo.setFans(0);
-        userInfo.setNice(0);
-        userInfo.setFollow(0);
+        //获取粉丝数
+        Long fansNum = userFollowService.userFansNum(id);
+        userInfo.setFans(fansNum);
+        //获取被赞数
+        Long likeNum = postLikeService.getUserLikeNum(id);
+        userInfo.setNice(likeNum);
+        //获取关注数
+        Long followNum = userFollowService.userFollowNum(id);
+        userInfo.setFollow(followNum);
         return R.success(userInfo);
     }
     /**

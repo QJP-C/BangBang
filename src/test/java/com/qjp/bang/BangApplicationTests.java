@@ -123,6 +123,14 @@ class BangApplicationTests {
 //        BeanUtils.copyProperties(pageInfo,list);
         list.forEach(System.out::println);
     }
+    @Test
+    void rediskeyadd(){
+        System.out.println(redisTemplate.opsForValue().get("ss"));
+    }
+    @Test
+    void rediskeyadd1(){
+        System.out.println(redisTemplate.opsForValue().increment("ss"));
+    }
 }
 
 

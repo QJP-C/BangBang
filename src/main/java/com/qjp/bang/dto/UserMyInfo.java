@@ -32,11 +32,11 @@ public class UserMyInfo {
     private String signature;
     //获赞数
     @ApiModelProperty("获赞数")
-    private Integer nice;
+    private Long nice;
     //关注数
     @ApiModelProperty("关注数")
-    private Integer follow;
+    private Long follow;
     //粉丝数
     @ApiModelProperty("粉丝数")
-    private Integer fans;
+    private Long fans;
 }

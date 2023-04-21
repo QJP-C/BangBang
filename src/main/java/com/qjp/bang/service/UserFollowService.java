@@ -13,5 +13,10 @@ import com.qjp.bang.entity.UserFollow;
 public interface UserFollowService extends IService<UserFollow> {
     R<String> follow(String toId, String openid);
 
+    Long userFollowNum(String id);
+
+    Long userFansNum(String id);
+
+
 }
 

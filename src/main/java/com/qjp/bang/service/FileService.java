@@ -11,5 +11,8 @@ import com.qjp.bang.entity.File;
  */
 public interface FileService extends IService<File> {
 
+    boolean addPostFile(String url, String postId);
+
+    String[] getPostFiles(String postId);
 }
 

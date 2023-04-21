@@ -52,5 +52,6 @@ public class TopicController {
         String openid = jwtUtil.getOpenidFromToken(header);
         return topicService.followTopic(openid,topicId);
     }
+
 }
 

@@ -48,7 +48,29 @@ public class UserFollowServiceImpl extends ServiceImpl<UserFollowMapper, UserFol
         return save ? R.success("关注成功！") : R.error("关注失败");
     }
 
+    /**
+     * 获取用户关注数
+     * @param id
+     * @return
+     */
+    @Override
+    public Long userFollowNum(String id) {
+        LambdaQueryWrapper<UserFollow> qw = new LambdaQueryWrapper<>();
+        qw.eq(UserFollow::getUserId,id);
+        return (long) this.count(qw);
+    }
 
+    /**
+     * 获取用户粉丝数
+     * @param id
+     * @return
+     */
+    @Override
+    public Long userFansNum(String id) {
+        LambdaQueryWrapper<UserFollow> qw = new LambdaQueryWrapper<>();
+        qw.eq(UserFollow::getFollowId,id);
+        return (long) this.count(qw);
+    }
 
     /**
      * 查询是否有该用户

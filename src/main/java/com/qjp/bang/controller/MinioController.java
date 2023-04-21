@@ -21,7 +21,7 @@ import java.util.Map;
 /**
  * @author qjp
  */
-@Api(tags = "文件上传")
+@Api(tags = "文件上传",value = "文件上传")
 @Slf4j
 @RequestMapping("/mo")
 @CrossOrigin

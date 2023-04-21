@@ -19,5 +19,7 @@ public interface TopicService extends IService<Topic> {
     R<List<Topic>> getList();
 
     R<String> followTopic(String openid, String topicId);
+
+    String getTopicName(String topicId);
 }
 
