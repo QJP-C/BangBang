@@ -26,7 +26,7 @@ public class TaskNewDto {
     private Integer urgent;
     //类型id
     @ApiModelProperty(value = "类型id",required = true)
-    private Integer sonType;
+    private String type;
     //赏金
     @ApiModelProperty(value = "赏金")
     private Double money;

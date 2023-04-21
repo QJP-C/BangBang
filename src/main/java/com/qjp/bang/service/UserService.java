@@ -21,7 +21,7 @@ public interface UserService extends IService<User> {
 
     R send(String phone);
 
-    R<String> check(String phone,String code);
+    R<String> check(String openid, String phone, String code);
 
     R<UserMyInfo> myInfo(String id);
     R<UserInfo> otherInfo(String id, String toOpenid);

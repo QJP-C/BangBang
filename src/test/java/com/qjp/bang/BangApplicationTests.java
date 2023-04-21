@@ -1,11 +1,12 @@
 package com.qjp.bang;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.qjp.bang.dto.TaskClassDto;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.qjp.bang.dto.UserUpdate;
-import com.qjp.bang.entity.TaskClass;
+import com.qjp.bang.entity.Task;
 import com.qjp.bang.entity.User;
 import com.qjp.bang.service.TaskClassService;
+import com.qjp.bang.service.TaskService;
 import com.qjp.bang.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
@@ -15,10 +16,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.RedisTemplate;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -30,6 +28,8 @@ class BangApplicationTests {
     @Resource
     private UserService userService;
 
+    @Resource
+    private TaskService taskService;
     @Test
     void csss() {
         UserUpdate userUpdate = new UserUpdate();
@@ -65,34 +65,63 @@ class BangApplicationTests {
     }
     @Resource
     private TaskClassService taskClassService;
+//    @Test
+//    void taskClass(){
+//        List<TaskClass> list = taskClassService.list();
+//        Map<Integer, TaskClassDto> map = new HashMap<>();
+//        for (TaskClass aClass : list) {
+//            //是父节点
+//            if (aClass.getFather()==0){
+//                TaskClassDto taskClassDto = new TaskClassDto();
+//                BeanUtils.copyProperties(aClass,taskClassDto);
+//                List<TaskClass> list1 = new ArrayList<>();
+//                taskClassDto.setSon(list1);
+//                map.put(aClass.getId(),taskClassDto);
+//            }
+//        }
+//        for (TaskClass aClass : list) {
+//            if (aClass.getFather()!=0){
+//                TaskClassDto taskClassDto = map.get(aClass.getFather());
+//                List<TaskClass> son = taskClassDto.getSon();
+//                son.add(aClass);
+//                taskClassDto.setSon(son);
+//                map.put(aClass.getFather(),taskClassDto);
+//            }
+//        }
+//
+//
+//        System.out.println(map);
+//
+//
+//    }
+
     @Test
-    void taskClass(){
-        List<TaskClass> list = taskClassService.list();
-        Map<Integer, TaskClassDto> map = new HashMap<>();
-        for (TaskClass aClass : list) {
-            //是父节点
-            if (aClass.getFather()==0){
-                TaskClassDto taskClassDto = new TaskClassDto();
-                BeanUtils.copyProperties(aClass,taskClassDto);
-                List<TaskClass> list1 = new ArrayList<>();
-                taskClassDto.setSon(list1);
-                map.put(aClass.getId(),taskClassDto);
-            }
-        }
-        for (TaskClass aClass : list) {
-            if (aClass.getFather()!=0){
-                TaskClassDto taskClassDto = map.get(aClass.getFather());
-                List<TaskClass> son = taskClassDto.getSon();
-                son.add(aClass);
-                taskClassDto.setSon(son);
-                map.put(aClass.getFather(),taskClassDto);
-            }
-        }
+    void nnn(){
+        User user = new User();
+        user.setId("oI1vd5DC3H0lVyJizpK58ZPS9Mz8");
+        user.setPhone("121161611");
+        userService.updateById(user);
+    }
 
+    @Test
+    void redissss(){
+        String key = "topicTest";
+        String cishu = "topicTest";
+        boolean member = redisTemplate.opsForSet().isMember(key, cishu);
+        System.out.println(member);
+    }
 
-        System.out.println(map);
-
-
+    @Test
+    void testPage(){
+        //分页构造器对象
+        LambdaQueryWrapper<Task> qw = new LambdaQueryWrapper<>();
+        Page<Task> pageInfo = new Page<>(1, 2);
+        qw.orderByDesc(Task::getReleaseTime);
+        taskService.page(pageInfo,qw);
+        System.out.println(pageInfo.getRecords());
+        List<Task> list = pageInfo.getRecords();
+//        BeanUtils.copyProperties(pageInfo,list);
+        list.forEach(System.out::println);
     }
 }
 

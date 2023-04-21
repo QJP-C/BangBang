@@ -2,10 +2,10 @@ package com.qjp.bang.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.qjp.bang.common.R;
-import com.qjp.bang.dto.TaskClassDto;
+import com.qjp.bang.dto.TaskNewClassDto;
 import com.qjp.bang.entity.TaskClass;
 
-import java.util.Map;
+import java.util.List;
 
 /**
  * (TaskClass)表服务接口
@@ -15,6 +15,8 @@ import java.util.Map;
  */
 public interface TaskClassService extends IService<TaskClass> {
 
-    R<Map<Integer, TaskClassDto>> getType();
+    R<List<TaskClass>> getType();
+
+    R<String> newClass(TaskNewClassDto taskNewClassDto);
 }
 

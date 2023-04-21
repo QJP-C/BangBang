@@ -57,8 +57,9 @@ public class UserController {
 
     @ApiOperation("校验验证码")
     @PostMapping("check")
-    public R<String> check(@NotBlank @RequestBody Check check) {
-        return userService.check(check.getPhone(), check.getCode());
+    public R<String> check(@RequestHeader("Authorization") String header,@NotBlank @RequestBody Check check) {
+        String openid = jwtUtil.getOpenidFromToken(header);
+        return userService.check(openid,check.getPhone(), check.getCode());
     }
 
     @ApiOperation("个人信息")

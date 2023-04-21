@@ -34,8 +34,8 @@ public class Task{
     private Integer urgent;
     //任务状态   1:已发布  2:已接取  3:已完成   0:已逾期
     private Integer state;
-    //叶类型id
-    private Integer sonType;
+    //类型
+    private String type;
     //赏金
     private Double money;
     //地址
