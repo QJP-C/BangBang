@@ -47,5 +47,6 @@ public interface PostLikeService extends IService<PostLike> {
      * @return
      */
     Long getUserLikeNum(String id);
+
 }
 

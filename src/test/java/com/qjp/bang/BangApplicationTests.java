@@ -1,5 +1,7 @@
 package com.qjp.bang;
 
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.date.LocalDateTimeUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.qjp.bang.dto.UserUpdate;
@@ -16,6 +18,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.RedisTemplate;
 
 import javax.annotation.Resource;
+import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -131,6 +135,16 @@ class BangApplicationTests {
     void rediskeyadd1(){
         System.out.println(redisTemplate.opsForValue().increment("ss"));
     }
+
+    @Test
+    void snovn(){
+//        System.out.println(DateUtil.getZodiac(Month.JANUARY.getValue(), 28));
+        String dateStr1 = "2017-03-01 22:33:23";
+        Date date1 = DateUtil.parse(dateStr1);
+        LocalDateTime of = LocalDateTimeUtil.of(date1);
+        System.out.println(LocalDateTimeUtil.ofUTC(date1.getTime()));
+    }
+
 }
 
 

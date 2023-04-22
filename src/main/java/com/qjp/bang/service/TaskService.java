@@ -1,13 +1,12 @@
 package com.qjp.bang.service;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.qjp.bang.common.R;
 import com.qjp.bang.dto.TaskDetailsResultDto;
 import com.qjp.bang.dto.TaskListResDto;
 import com.qjp.bang.dto.TaskNewDto;
 import com.qjp.bang.entity.Task;
-
-import java.util.List;
 
 /**
  * (Task)表服务接口
@@ -21,12 +20,12 @@ public interface TaskService extends IService<Task> {
 
     R<TaskDetailsResultDto> taskDetails(String openid, String taskId);
 
-    R<List<TaskListResDto>> taskList(String openid, String typeId, String search, int page, int pageSize);
+    R<Page<TaskListResDto>> taskList(String openid, String typeId, String search, int page, int pageSize);
 
-    R<List<TaskListResDto>> myList(String openid, Integer status, int page, int pageSize);
+    R<Page<TaskListResDto>> myList(String openid, Integer status, int page, int pageSize);
 
-    R<List<TaskListResDto>> history(String openid, int page, int pageSize);
+    R<Page<TaskListResDto>> history(String openid, int page, int pageSize);
 
-    R<List<TaskListResDto>> myLike(String openid, int page, int pageSize);
+    R<Page<TaskListResDto>> myLike(String openid, int page, int pageSize);
 }
 

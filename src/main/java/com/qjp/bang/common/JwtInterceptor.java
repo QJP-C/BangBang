@@ -43,22 +43,27 @@ public class JwtInterceptor implements HandlerInterceptor {
             String tokenRedis = Objects.requireNonNull(redisTemplate.opsForValue().get(openid)).toString();
             boolean equals = tokenRedis.equals(token);
             if (equals) return true;
-            BangException.cast("token过期！");
             response.setStatus(508);
+            BangException.cast("token过期！");
             return false;//放行请求
         }catch (ExpiredJwtException e){
             e.printStackTrace();
+            response.setStatus(508);
             throw new BangException("token过期！");
         }catch (MalformedJwtException e){
+            response.setStatus(508);
             e.printStackTrace();
             throw new BangException("token格式错误！");
         }catch (SignatureException e){
+            response.setStatus(508);
             e.printStackTrace();
             throw new BangException("无效签名！");
         }catch (IllegalArgumentException e){
+            response.setStatus(508);
             e.printStackTrace();
             throw new BangException("非法请求！");
         }catch (Exception e){
+            response.setStatus(508);
             e.printStackTrace();
             throw new BangException("token无效！");
         }

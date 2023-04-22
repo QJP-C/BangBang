@@ -6,6 +6,7 @@ import com.qjp.bang.dto.Check;
 import com.qjp.bang.dto.UserInfo;
 import com.qjp.bang.dto.UserMyInfo;
 import com.qjp.bang.dto.UserUpdate;
+import com.qjp.bang.service.UserFollowService;
 import com.qjp.bang.service.UserService;
 import com.qjp.bang.utils.JwtUtil;
 import io.swagger.annotations.Api;
@@ -32,7 +33,8 @@ public class UserController {
      */
     @Resource
     private UserService userService;
-
+    @Resource
+    private UserFollowService userFollowService;
     @Resource
     JwtUtil jwtUtil;
 
@@ -75,6 +77,12 @@ public class UserController {
         String myOpenid = jwtUtil.getOpenidFromToken(header);
         return userService.otherInfo(myOpenid,toOpenid);
     }
-
+    @ApiOperation("关注取关")
+    @PostMapping("/follow")
+    public R<String> follow(@RequestHeader("Authorization") String header,
+                            @NotBlank @RequestBody Map<String,String> toId){
+        String openid = jwtUtil.getOpenidFromToken(header);
+        return userFollowService.follow(toId.get("toId"),openid);
+    }
 }
 

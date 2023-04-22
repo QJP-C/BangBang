@@ -2,6 +2,7 @@ package com.qjp.bang.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.qjp.bang.entity.PostCollect;
 import com.qjp.bang.mapper.PostLikeMapper;
 import com.qjp.bang.entity.PostLike;
 import com.qjp.bang.service.PostLikeService;
@@ -79,5 +80,7 @@ public class PostLikeServiceImpl extends ServiceImpl<PostLikeMapper, PostLike> i
         qw.eq(PostLike::getUserId, id);
         return (long) this.count(qw);
     }
+
+
 }
 

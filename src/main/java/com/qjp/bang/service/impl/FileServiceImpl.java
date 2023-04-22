@@ -42,8 +42,8 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
     @Override
     public String[] getPostFiles(String postId) {
         LambdaQueryWrapper<File> qw = new LambdaQueryWrapper<>();
-        qw.eq(File::getAboutId,postId).eq(File::getBelong,3);
-        List<File> list = this.list();
+        qw.eq(File::getAboutId,postId).eq(File::getBelong,"3");
+        List<File> list = this.list(qw);
         if (list.size() ==0) return new String[0];
         String[] urls = new String[list.size()];
         for (int i = 0; i < list.size(); i++) {

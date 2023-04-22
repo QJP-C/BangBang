@@ -29,12 +29,21 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper, Topic> implements
     @Resource
     private TopicFollowService topicFollowService;
 
+    /**
+     * 新增话题
+     * @param topic
+     * @return
+     */
     @Override
     public R<String> newTopic(Topic topic) {
         boolean save = this.save(topic);
         return save ? R.success("新增成功！") : R.success("新增失败！");
     }
 
+    /**
+     * 话题列表
+     * @return
+     */
     @Override
     public R<List<Topic>> getList() {
         List<Topic> list = this.list();
@@ -44,6 +53,12 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper, Topic> implements
         return R.success(list);
     }
 
+    /**
+     * 关注/取关话题
+     * @param openid
+     * @param topicId
+     * @return
+     */
     @Override
     public R<String> followTopic(String openid, String topicId) {
         //用户是否存在
@@ -83,7 +98,6 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper, Topic> implements
 
     /**
      * 用户是否存在
-     *
      * @param openid
      * @return
      */
@@ -99,11 +113,13 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper, Topic> implements
      * @param topicId
      * @return
      */
-    private boolean topicHave(String topicId) {
+    @Override
+    public boolean topicHave(String topicId) {
         LambdaQueryWrapper<Topic> qw = new LambdaQueryWrapper<>();
         qw.eq(Topic::getId, topicId);
         return this.count(qw) > 0;
     }
+
 
     /**
      * 该用户是否关注该话题

@@ -27,5 +27,6 @@ public interface UserService extends IService<User> {
     R<UserInfo> otherInfo(String id, String toOpenid);
 
 
+    String getOneHead(String userId);
 }
 

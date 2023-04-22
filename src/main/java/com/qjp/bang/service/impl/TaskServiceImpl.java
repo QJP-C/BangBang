@@ -116,7 +116,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
         if (fromFiles!=null){
             dto.setFromUrls(fromFiles);
         }
-
+        //查看是否有接单人
         if (task.getToId()!= null){//没有接单人
             String[] toFiles = files(taskId, "2");
             if (toFiles!=null){
@@ -144,13 +144,13 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
      * @return
      */
     @Override
-    public R<List<TaskListResDto>> taskList(String openid, String typeId, String search, int page, int pageSize) {
-
+    public R<Page<TaskListResDto>> taskList(String openid, String typeId, String search, int page, int pageSize) {
         LambdaQueryWrapper<Task> qw = new LambdaQueryWrapper<>();
+        //是否按类型查询
         if (typeId!=null){
             qw.eq(Task::getType,typeId);
         }
-
+        //是否有搜索字段
         if (search!=null){
             qw.like(Task::getLocation,search)
                     .or()
@@ -158,7 +158,8 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
                     .or()
                     .like(Task::getTitle,search);
         }
-        return getListR(openid, qw,page,pageSize);
+        qw.orderByDesc(Task::getReleaseTime);
+        return R.success(getListR(openid, qw,page,pageSize));
     }
 
     /**
@@ -171,13 +172,15 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
      * @return
      */
     @Override
-    public R<List<TaskListResDto>> myList(String openid, Integer status, int page, int pageSize) {
+    public R<Page<TaskListResDto>> myList(String openid, Integer status, int page, int pageSize) {
         LambdaQueryWrapper<Task> qw = new LambdaQueryWrapper<>();
         qw.eq(Task::getFromId,openid);
+        //是否按状态查询
         if (status!=null){
             qw.eq(Task::getState,status);
         }
-        return getListR(openid, qw,page,pageSize);
+        qw.orderByDesc(Task::getReleaseTime);
+        return R.success(getListR(openid, qw,page,pageSize));
     }
 
     /**
@@ -189,63 +192,70 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
      * @return
      */
     @Override
-    public R<List<TaskListResDto>> history(String openid, int page, int pageSize) {
-        //分页构造器对象
-        Page<TaskHistory> pageInfo = new Page<>(page, pageSize);
+    public R<Page<TaskListResDto>> history(String openid, int page, int pageSize) {
         LambdaQueryWrapper<TaskHistory> qw = new LambdaQueryWrapper<>();
         qw.eq(TaskHistory::getUserId,openid);
         qw.orderByDesc(TaskHistory::getBrowseTime);
+        //分页构造器对象
+        Page<TaskHistory> pageInfo = new Page<>(page, pageSize);
+        Page<TaskListResDto> dtoPage = new Page<>(page, pageSize);
+
         taskHistoryService.page(pageInfo,qw);
+        BeanUtils.copyProperties(pageInfo,dtoPage,"records");
         List<TaskHistory> records = pageInfo.getRecords();
         List<TaskListResDto> list = records.stream().map(i -> {
             Task task = this.getById(i.getTaskId());
             return getTaskListResDto(openid, task);
         }).collect(Collectors.toList());
-
-        return R.success(list);
+        dtoPage.setRecords(list);
+        return R.success(dtoPage);
     }
 
     /**
      * 我的收藏
-     *
      * @param openid
      * @param page
      * @param pageSize
      * @return
      */
     @Override
-    public R<List<TaskListResDto>> myLike(String openid, int page, int pageSize) {
+    public R<Page<TaskListResDto>> myLike(String openid, int page, int pageSize) {
         //分页构造器对象
         Page<TaskCollect> pageInfo = new Page<>(page, pageSize);
+        Page<TaskListResDto> dtoPage = new Page<>(page, pageSize);
         LambdaQueryWrapper<TaskCollect> qw = new LambdaQueryWrapper<>();
         qw.eq(TaskCollect::getUserId,openid).orderByDesc(TaskCollect::getCollectTime);
         taskCollectService.page(pageInfo,qw);
+        BeanUtils.copyProperties(pageInfo,dtoPage,"records");
         List<TaskCollect> records = pageInfo.getRecords();
         List<TaskListResDto> list = records.stream().map(i -> {
             Task task = this.getById(i.getTaskId());
             return getTaskListResDto(openid, task);
         }).collect(Collectors.toList());
-        return R.success(list);
+        dtoPage.setRecords(list);
+        return R.success(dtoPage);
     }
 
     /**
      * 获取列表
+     *
      * @param openid
      * @param qw
      * @return
      */
     @NotNull
-    private R<List<TaskListResDto>> getListR(String openid, LambdaQueryWrapper<Task> qw, int page, int pageSize) {
+    private Page<TaskListResDto> getListR(String openid, LambdaQueryWrapper<Task> qw, int page, int pageSize) {
         //分页构造器对象
         Page<Task> pageInfo = new Page<>(page, pageSize);
-        qw.orderByDesc(Task::getReleaseTime);
+        Page<TaskListResDto> dtoPage = new Page<>(page, pageSize);
         this.page(pageInfo,qw);
+        BeanUtils.copyProperties(pageInfo,dtoPage,"records");
         List<Task> list = pageInfo.getRecords();
         List<TaskListResDto> res = list.stream().map(task -> {
             return getTaskListResDto(openid, task);
         }).collect(Collectors.toList());
-
-        return R.success(res);
+        dtoPage.setRecords(res);
+        return dtoPage;
     }
 
     /**

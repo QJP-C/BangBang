@@ -27,6 +27,14 @@ public class R<T> implements Serializable {
         return r;
     }
 
+//    public static <T> R<T> success(T object,Map map) {
+//        R<T> r = new R<T>();
+//        r.result = object;
+//        r.code = 1;
+//        r.map = map;
+//        return r;
+//    }
+
     public static <T> R<T> success(T object,String message) {
         R<T> r = new R<T>();
         r.result = object;
@@ -34,6 +42,14 @@ public class R<T> implements Serializable {
         r.message=message;
         return r;
     }
+//    public static <T> R<T> success(T object,String message,Map map) {
+//        R<T> r = new R<T>();
+//        r.result = object;
+//        r.code = 1;
+//        r.message=message;
+//        r.map = map;
+//        return r;
+//    }
 
     public static <T> R<T> success(String message) {
         R<T> r = new R<T>();

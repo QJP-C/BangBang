@@ -222,6 +222,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         userInfo.setFollow(followNum);
         return R.success(userInfo);
     }
+
+    /**
+     * 获取用户头像
+     * @param userId
+     * @return
+     */
+    @Override
+    public String getOneHead(String userId) {
+        User user = this.getById(userId);
+        return user.getHead();
+    }
+
     /**
      * 查询是否有该用户
      *

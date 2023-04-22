@@ -8,10 +8,11 @@ import com.qjp.bang.entity.UserFollow;
 import com.qjp.bang.mapper.UserFollowMapper;
 import com.qjp.bang.service.UserFollowService;
 import com.qjp.bang.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * (UserFollow)表服务实现类
@@ -21,16 +22,22 @@ import java.time.LocalDateTime;
  */
 @Service("userFollowService")
 public class UserFollowServiceImpl extends ServiceImpl<UserFollowMapper, UserFollow> implements UserFollowService {
-    @Autowired
+    @Resource
     private UserService userService;
 
+    /**
+     * 关注/取关用户
+     * @param toId
+     * @param openid
+     * @return
+     */
     @Override
     public R<String> follow(String toId, String openid) {
 
         boolean have = haveOne(toId);
         if (!have) return R.error("没有这个用户！");
 
-        boolean is = getIs(toId, openid);
+        boolean is = isFollow(toId, openid);
         if (is){
             //已关注  取关
             LambdaQueryWrapper<UserFollow> qw = new LambdaQueryWrapper<>();
@@ -72,6 +79,8 @@ public class UserFollowServiceImpl extends ServiceImpl<UserFollowMapper, UserFol
         return (long) this.count(qw);
     }
 
+
+
     /**
      * 查询是否有该用户
      *
@@ -92,12 +101,32 @@ public class UserFollowServiceImpl extends ServiceImpl<UserFollowMapper, UserFol
      * @param openid
      * @return
      */
-    private boolean getIs(String toId, String openid) {
+    @Override
+    public boolean isFollow(String toId, String openid) {
         LambdaQueryWrapper<UserFollow> qw = new LambdaQueryWrapper<>();
         qw.eq(UserFollow::getUserId, openid);
         qw.eq(UserFollow::getFollowId, toId);
         int count = this.count(qw);
         return count > 0;
+    }
+
+    /**
+     * 获取关注的用户ids
+     * @param openid
+     * @return
+     */
+    @Override
+    public String[] getIdByFollow(String openid) {
+        LambdaQueryWrapper<UserFollow> qw = new LambdaQueryWrapper<>();
+        qw.eq(UserFollow::getUserId,openid);
+        int count = this.count(qw);
+        if (count<=0) return new String[0];
+        List<UserFollow> list = this.list(qw);
+        String[] ids = new String[list.size()];
+        for (int i = 0; i < list.size(); i++) {
+            ids[i] = list.get(i).getFollowId();
+        }
+        return ids;
     }
 }
 
