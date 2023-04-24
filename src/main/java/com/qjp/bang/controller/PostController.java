@@ -72,14 +72,7 @@ public class PostController {
         return postService.pageForTopic(openid, topicId, page, pageSize);
     }
 
-    @ApiOperation("关注的用户动态")
-    @GetMapping("followList")
-    public R pageByFollow(@RequestHeader("Authorization") String header,
-                          @RequestParam("page") int page,
-                          @RequestParam("pageSize") int pageSize) {
-        String openid = jwtUtil.getOpenidFromToken(header);
-        return postService.pageByFollow(openid, page, pageSize);
-    }
+
 
     /**
      * @param header
