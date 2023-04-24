@@ -1,5 +1,6 @@
 package com.qjp.bang.service.impl;
 
+import cn.hutool.core.util.ArrayUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -11,6 +12,7 @@ import com.qjp.bang.entity.*;
 import com.qjp.bang.exception.BangException;
 import com.qjp.bang.mapper.TaskMapper;
 import com.qjp.bang.service.*;
+import io.netty.util.internal.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.BeanUtils;
@@ -22,6 +24,7 @@ import javax.annotation.Resource;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -61,7 +64,6 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
     @Override
     @Transactional
     public R<String> newTask(String openid, TaskNewDto taskNewDto) {
-
         LocalDateTime now = LocalDateTime.now();
         Task task = new Task();
         BeanUtils.copyProperties(taskNewDto, task);
@@ -106,9 +108,9 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
         int like = isLike(openid, taskId);
         dto.setIsLike(like);
         //用户信息
-        String[] fromUserInfo = userInfo(task.getFromId());
-        dto.setFromHead(fromUserInfo[0]);
-        dto.setFromName(fromUserInfo[1]);
+        Map<String, String> oneInfo = userService.getOneInfo(task.getFromId());
+        dto.setFromHead(oneInfo.get("head"));
+        dto.setFromName(oneInfo.get("username"));
         //分类信息
         dto.setType(className(task.getType()));
         //获取附件url
@@ -117,19 +119,21 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
             dto.setFromUrls(fromFiles);
         }
         //查看是否有接单人
-        if (task.getToId()!= null){//没有接单人
+        if (!StringUtil.isNullOrEmpty(task.getToId())){//有接单人
+            //用户信息
+            Map<String, String> toInfo = userService.getOneInfo(task.getToId());
+            dto.setToHead(toInfo.get("head"));
+            dto.setToName(toInfo.get("username"));
+            //是否有提交的附件
             String[] toFiles = files(taskId, "2");
-            if (toFiles!=null){
+            if (ArrayUtil.isEmpty(toFiles)){
                 dto.setToUrls(toFiles);
             }
-            String[] toUserInfo = userInfo(task.getToId());
-            dto.setToHead(toUserInfo[0]);
-            dto.setToName(toUserInfo[1]);
         }
 
         //保存历史足迹
-        taskHistoryService.addHistory(openid,taskId);
-
+        boolean b = taskHistoryService.addHistory(openid, taskId);
+        if (!b) BangException.cast("保持历史记录失败，请重试!");
         return R.success(dto);
     }
 
@@ -219,7 +223,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
      * @return
      */
     @Override
-    public R<Page<TaskListResDto>> myLike(String openid, int page, int pageSize) {
+    public R<Page<TaskListResDto>> myCollect(String openid, int page, int pageSize) {
         //分页构造器对象
         Page<TaskCollect> pageInfo = new Page<>(page, pageSize);
         Page<TaskListResDto> dtoPage = new Page<>(page, pageSize);
@@ -268,8 +272,10 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
     private TaskListResDto getTaskListResDto(String openid, Task task) {
         TaskListResDto dto = new TaskListResDto();
         BeanUtils.copyProperties(task, dto);
-        String head = userInfo(task.getFromId())[0];
-        dto.setHead(head);
+        //用户信息
+        Map<String, String> oneInfo = userService.getOneInfo(task.getFromId());
+        dto.setHead(oneInfo.get("head"));
+        dto.setUsername(oneInfo.get("username"));
         int like = isLike(openid, task.getId());
         dto.setIsLike(like);
         return dto;
@@ -307,15 +313,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
     }
 
 
-    /**
-     * 查找用户基本信息
-     * @param openid
-     * @return
-     */
-    private String[] userInfo(String openid){
-        User user = userService.getById(openid);
-        return new String[]{user.getHead(),user.getUsername()};
-    }
+
 
     /**
      * 获取该用户是否收藏该任务

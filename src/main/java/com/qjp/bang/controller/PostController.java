@@ -8,6 +8,7 @@ import com.qjp.bang.dto.PostListResDto;
 import com.qjp.bang.dto.PostNewParamDto;
 import com.qjp.bang.service.PostService;
 import com.qjp.bang.utils.JwtUtil;
+import io.netty.util.internal.StringUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -62,16 +63,24 @@ public class PostController {
         return postService.collectPost(openid, postId);
     }
 
-    @ApiOperation("按话题查")
-    @GetMapping("list/{topicId}")
-    public R<Page<PostListResDto>> pageByTopic(@RequestHeader("Authorization") String header,
+    @ApiOperation("按话题查(热门)")
+    @GetMapping("listByHot")
+    public R<Page<PostListResDto>> pageByHotTopic(@RequestHeader("Authorization") String header,
                                                @PathVariable(value = "topicId", required = false) String topicId,
                                                @RequestParam("page") int page,
                                                @RequestParam("pageSize") int pageSize) {
         String openid = jwtUtil.getOpenidFromToken(header);
-        return postService.pageForTopic(openid, topicId, page, pageSize);
+        return postService.pageByHotTopic(openid, topicId, page, pageSize);
     }
-
+    @ApiOperation("按话题查(新帖)")
+    @GetMapping("listByNew")
+    public R<Page<PostListResDto>> pageByNewTopic(@RequestHeader("Authorization") String header,
+                                               @PathVariable(value = "topicId", required = false) String topicId,
+                                               @RequestParam("page") int page,
+                                               @RequestParam("pageSize") int pageSize) {
+        String openid = jwtUtil.getOpenidFromToken(header);
+        return postService.pageByNewTopic(openid, topicId, page, pageSize);
+    }
 
 
     /**
@@ -81,8 +90,8 @@ public class PostController {
      * @return
      */
     @ApiOperation("关注的用户动态")
-    @GetMapping("followerList")
-    public R pageByFollow1(@RequestHeader("Authorization") String header,
+    @GetMapping("listByFollow")
+    public R pageByFollow(@RequestHeader("Authorization") String header,
                            @RequestParam("lastId") Long max,
                            @RequestParam(value = "offset", defaultValue = "0") Integer offset,
                            @RequestParam("pageSize")Integer pageSize
@@ -91,5 +100,32 @@ public class PostController {
         return postService.queryPostOfFollow(openid, max, offset,pageSize);
     }
 
+    @ApiOperation("推荐")
+    @GetMapping("listByRecommend")
+    public R queryPostOfRecommend(@RequestHeader("Authorization") String header,
+                           @RequestParam("page") int page,
+                           @RequestParam("pageSize") int pageSize) {
+        String openid = jwtUtil.getOpenidFromToken(header);
+        return postService.queryPostOfRecommend(openid,page,pageSize);
+    }
+    @ApiOperation("图文")
+    @GetMapping("listByImageText")
+    public R queryPostOfImageText(@RequestHeader("Authorization") String header,
+                                  @RequestParam("page") int page,
+                                  @RequestParam("pageSize") int pageSize) {
+        String openid = jwtUtil.getOpenidFromToken(header);
+        return postService.queryPostOfImageText(openid,page,pageSize);
+    }
+    @ApiOperation("个人动态")
+    @GetMapping("listByPersonal")
+    public R queryPostOfPersonal(@RequestHeader("Authorization") String header,
+                                   @RequestParam(value = "openid",required = false)String openid,
+                                   @RequestParam("page") int page,
+                                   @RequestParam("pageSize") int pageSize) {
+        if (StringUtil.isNullOrEmpty(openid)){
+            openid = jwtUtil.getOpenidFromToken(header);
+        }
+        return postService.queryPostOfPersonal(openid,page,pageSize);
+    }
 }
 

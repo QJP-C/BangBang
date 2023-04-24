@@ -47,5 +47,19 @@ public interface UserFollowService extends IService<UserFollow> {
      * @return
      */
     String[] getIdByFollow(String openid);
+
+    /**
+     * 我的关注
+     * @param openid
+     * @return
+     */
+    R myFollow(String openid);
+
+    /**
+     * 我的粉丝
+     * @param openid
+     * @return
+     */
+    R myFans(String openid);
 }
 

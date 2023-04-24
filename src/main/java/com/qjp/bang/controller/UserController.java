@@ -84,5 +84,19 @@ public class UserController {
         String openid = jwtUtil.getOpenidFromToken(header);
         return userFollowService.follow(toId,openid);
     }
+
+
+    @ApiOperation("我的关注")
+    @GetMapping("myFollow")
+    public R myFollow(@RequestHeader("Authorization") String header){
+        String openid = jwtUtil.getOpenidFromToken(header);
+        return userFollowService.myFollow(openid);
+    }
+    @ApiOperation("我的粉丝")
+    @GetMapping("myFans")
+    public R myFans(@RequestHeader("Authorization") String header){
+        String openid = jwtUtil.getOpenidFromToken(header);
+        return userFollowService.myFans(openid);
+    }
 }
 

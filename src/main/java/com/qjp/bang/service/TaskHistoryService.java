@@ -10,7 +10,12 @@ import com.qjp.bang.entity.TaskHistory;
  * @since 2023-04-19 18:06:11
  */
 public interface TaskHistoryService extends IService<TaskHistory> {
-
-    void addHistory(String openid, String taskId);
+    /**
+     * 添加历史记录
+     * @param openid
+     * @param taskId
+     * @return
+     */
+    boolean addHistory(String openid, String taskId);
 }
 

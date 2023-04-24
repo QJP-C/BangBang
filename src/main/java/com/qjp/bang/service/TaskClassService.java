@@ -14,9 +14,17 @@ import java.util.List;
  * @since 2023-04-17 19:48:07
  */
 public interface TaskClassService extends IService<TaskClass> {
-
+    /**
+     * 获取类型列表
+     * @return
+     */
     R<List<TaskClass>> getType();
 
+    /**
+     * 新增分类
+     * @param taskNewClassDto
+     * @return
+     */
     R<String> newClass(TaskNewClassDto taskNewClassDto);
 }
 

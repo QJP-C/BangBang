@@ -19,4 +19,7 @@ public class PostNewParamDto {
     //附件
     @ApiModelProperty("附件")
     private String[] urls;
+    //是否有视频  1有视频 0无视频
+    @ApiModelProperty("是否有视频  1有视频 0无视频")
+    private int isVideo;
 }

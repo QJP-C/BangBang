@@ -13,7 +13,6 @@ import com.qjp.bang.service.TaskCollectService;
 import com.qjp.bang.service.TaskService;
 import com.qjp.bang.utils.JwtUtil;
 import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiModelProperty;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -52,14 +51,13 @@ public class TaskController {
         String openid = jwtUtil.getOpenidFromToken(header);
         return taskService.newTask(openid, taskNewDto);
     }
-
-    @ApiModelProperty("获取任务分类")
+    @ApiOperation("获取任务分类")
     @GetMapping
     public R<List<TaskClass>> getType() {
         return taskClassService.getType();
     }
 
-    @ApiModelProperty("新增分类")
+    @ApiOperation("新增分类")
     @PostMapping("newClass")
     public R<String> newClass(@RequestBody TaskNewClassDto taskNewClassDto){
         return taskClassService.newClass(taskNewClassDto);
@@ -68,7 +66,7 @@ public class TaskController {
     @GetMapping("collect/{taskId}")
     public R<String> likeTask(@RequestHeader("Authorization") String header, @PathVariable("taskId")String taskId){
         String openid = jwtUtil.getOpenidFromToken(header);
-        return taskCollectService.likeTask(openid, taskId);
+        return taskCollectService.collectTask(openid, taskId);
     }
     @ApiOperation("任务详情")
     @GetMapping("/one/{taskId}")
@@ -87,8 +85,6 @@ public class TaskController {
         String openid = jwtUtil.getOpenidFromToken(header);
         return taskService.taskList(openid, typeId, search, page, pageSize);
     }
-
-
 
     @ApiOperation("我的发布")
     @GetMapping("myList")
@@ -115,7 +111,7 @@ public class TaskController {
                                           @RequestParam(value = "page") int page,
                                           @RequestParam(value = "pageSize") int pageSize) {
         String openid = jwtUtil.getOpenidFromToken(header);
-        return taskService.myLike(openid,page,pageSize);
+        return taskService.myCollect(openid,page,pageSize);
     }
 
 

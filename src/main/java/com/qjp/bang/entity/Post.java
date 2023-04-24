@@ -32,7 +32,9 @@ public class Post {
     //位置
     @ApiModelProperty("位置")
     private String location;
-
+    //是否有视频  1有视频 0无视频
+    @ApiModelProperty("是否有视频  1有视频 0无视频")
+    private int isVideo;
 
 }
 

@@ -42,12 +42,12 @@ public interface PostService extends IService<Post> {
     R<String> collectPost(String openid, String postId);
 
     /**
-     * 按话题查
+     * 按话题查(热门)
      * @param openid
      * @param topicId
      * @return
      */
-    R<Page<PostListResDto>> pageForTopic(String openid, String topicId, int page, int pageSize);
+    R<Page<PostListResDto>> pageByHotTopic(String openid, String topicId, int page, int pageSize);
 
     /**
      * 关注的用户动态
@@ -58,5 +58,43 @@ public interface PostService extends IService<Post> {
      * @return
      */
     R queryPostOfFollow(String openid, Long max, Integer offset, Integer pageSize);
+
+    /**
+     * 按话题查(新帖)
+     * @param openid
+     * @param topicId
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    R<Page<PostListResDto>> pageByNewTopic(String openid, String topicId, int page, int pageSize);
+
+    /**
+     * 推荐
+     *
+     * @param openid
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    R queryPostOfRecommend(String openid, int page, int pageSize);
+
+    /**
+     * 图文
+     * @param openid
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    R queryPostOfImageText(String openid, int page, int pageSize);
+
+    /**
+     * 个人动态
+     * @param openid
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    R queryPostOfPersonal(String openid, int page, int pageSize);
 }
 

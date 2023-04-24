@@ -19,7 +19,6 @@ import com.qjp.bang.utils.JwtUtil;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.json.JSONObject;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -49,7 +48,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Resource
     PostLikeService postLikeService;
 
-    @Autowired
+    @Resource
     private UserFollowService userFollowService;               
 
     /**
@@ -151,7 +150,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     /**
      * 校验验证码
-     *
      * @param openid
      * @param phone
      * @param code
@@ -224,8 +222,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     /**
-     * 获取用户头像
-     *
+     * 获取用户资料
      * @param userId
      * @return
      */
@@ -244,7 +241,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      * @param id
      * @return
      */
-    private boolean haveOne(String id) {
+    @Override
+    public boolean haveOne(String id) {
         LambdaQueryWrapper<User> qw = new LambdaQueryWrapper<>();
         qw.eq(User::getId, id);
         //是否有这个人

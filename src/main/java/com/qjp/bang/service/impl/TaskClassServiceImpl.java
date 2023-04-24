@@ -19,11 +19,20 @@ import java.util.List;
  */
 @Service("taskClassService")
 public class TaskClassServiceImpl extends ServiceImpl<TaskClassMapper, TaskClass> implements TaskClassService {
+    /**
+     * 获取类型列表
+     * @return
+     */
     @Override
     public R<List<TaskClass>> getType() {
         return R.success(this.list());
     }
 
+    /**
+     * 新增分类
+     * @param taskNewClassDto
+     * @return
+     */
     @Override
     public R<String> newClass(TaskNewClassDto taskNewClassDto) {
         TaskClass taskClass = new TaskClass();

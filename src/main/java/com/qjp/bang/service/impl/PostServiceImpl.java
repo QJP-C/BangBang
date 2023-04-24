@@ -191,25 +191,85 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
     }
 
     /**
-     * 按话题题查
-     *
+     * 按话题查(热门)
      * @param openid
      * @param topicId
      * @return
      */
     @Override
-    public R<Page<PostListResDto>> pageForTopic(String openid, String topicId, int page, int pageSize) {
+    public R<Page<PostListResDto>> pageByHotTopic(String openid, String topicId, int page, int pageSize) {
         //该话题是否存在
         if (!topicService.topicHave(topicId)) {
-            BangException.cast("该帖子不存在或已删除！");
+            BangException.cast("该话题不存在或已删除！");
         }
         //该话题的帖子 查询条件
         LambdaQueryWrapper<Post> qw = new LambdaQueryWrapper<>();
         qw.eq(Post::getTopicId, topicId);
         //构造返回值
         Page<PostListResDto> resDtoList = getPostListResDtos(openid, qw, page, pageSize);
+        //按点赞数降序
+        resDtoList.setRecords(ListUtil.sortByProperty(resDtoList.getRecords(),"likeNum"));
+        resDtoList.setRecords(ListUtil.reverse(resDtoList.getRecords()));
         return R.success(resDtoList);
     }
+
+    /**
+     * 按话题查(新帖)
+     * @param openid
+     * @param topicId
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    @Override
+    public R<Page<PostListResDto>> pageByNewTopic(String openid, String topicId, int page, int pageSize) {
+        //该话题是否存在
+        if (!topicService.topicHave(topicId)) {
+            BangException.cast("该话题不存在或已删除！");
+        }
+        //该话题的帖子 查询条件
+        LambdaQueryWrapper<Post> qw = new LambdaQueryWrapper<>();
+        //按时间降序
+        qw.eq(Post::getTopicId, topicId).orderByDesc(Post::getReleaseTime);
+        //构造返回值
+        Page<PostListResDto> resDtoList = getPostListResDtos(openid, qw, page, pageSize);
+        return R.success(resDtoList);
+    }
+
+    /**
+     * 热门
+     * @param openid
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    @Override
+    public R queryPostOfRecommend(String openid, int page, int pageSize) {
+        Page<PostListResDto> resDtoList = getPostListResDtos(openid, new LambdaQueryWrapper<>(), page, pageSize);
+        //按点赞数降序
+        resDtoList.setRecords(ListUtil.sortByProperty(resDtoList.getRecords(),"likeNum"));
+        resDtoList.setRecords(ListUtil.reverse(resDtoList.getRecords()));
+        return R.success(resDtoList);
+    }
+
+    /**
+     * 图文
+     * @param openid
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    @Override
+    public R queryPostOfImageText(String openid, int page, int pageSize) {
+        LambdaQueryWrapper<Post> qw = new LambdaQueryWrapper<>();
+        qw.eq(Post::getIsVideo,0);
+        Page<PostListResDto> resDtoList = getPostListResDtos(openid,qw , page, pageSize);
+        //按点赞数降序
+        resDtoList.setRecords(ListUtil.sortByProperty(resDtoList.getRecords(),"likeNum"));
+        resDtoList.setRecords(ListUtil.reverse(resDtoList.getRecords()));
+        return R.success(resDtoList);
+    }
+
 
 
     /**关注的用户动态
@@ -231,12 +291,12 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
             return R.success(new ArrayList<>(),"您还没有关注其他人哦！O_o!");
         }
         //4.解析数据：blogId、minTime(时间戳)、offset
-        List<Long> postIds = new ArrayList<>(typedTuples.size());
+        List<String> postIds = new ArrayList<>(typedTuples.size());
         long minTime = 0;
         int os = 1;
         for (ZSetOperations.TypedTuple<String> typedTuple : typedTuples) {
             //获取帖子id
-            postIds.add(Long.valueOf(typedTuple.getValue()));
+            postIds.add(typedTuple.getValue());
             //获取分数（时间戳）
             long time = typedTuple.getScore().longValue();
             //下一个是否等于当前这个
@@ -339,6 +399,7 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
             return postListResDto;
         }).collect(Collectors.toList());
         dtoPage.setRecords(resDtoList);
+
         return dtoPage;
     }
 
@@ -353,6 +414,26 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         LambdaQueryWrapper<Post> qw = new LambdaQueryWrapper<>();
         qw.eq(Post::getId, postId);
         return this.count(qw) > 0;
+    }
+
+    /**
+     * 个人动态
+     * @param openid
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    @Override
+    public R queryPostOfPersonal(String openid, int page, int pageSize) {
+        boolean haveOne = userService.haveOne(openid);
+        if (!haveOne) BangException.cast("该用户不存在！");
+        LambdaQueryWrapper<Post> qw = new LambdaQueryWrapper<>();
+        qw.eq(Post::getUserId,openid).orderByDesc(Post::getReleaseTime);
+        List<Post> list = this.list();
+        //按点赞数降序
+        ListUtil.sortByProperty(list,"likeNum");
+        ListUtil.reverse(list);
+        return R.success(list);
     }
 }
 

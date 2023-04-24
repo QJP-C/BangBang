@@ -13,6 +13,9 @@ public class TaskListResDto {
     //用户头像
     @ApiModelProperty("用户头像")
     private String head;
+    //用户头像
+    @ApiModelProperty("用户昵称")
+    private String username;
     //任务标题
     @ApiModelProperty("任务标题")
     private String title;

@@ -11,7 +11,12 @@ import com.qjp.bang.entity.TaskCollect;
  * @since 2023-04-18 11:19:58
  */
 public interface TaskCollectService extends IService<TaskCollect> {
-
-    R<String> likeTask(String openid, String taskId);
+    /**
+     * 收藏任务
+     * @param openid
+     * @param taskId
+     * @return
+     */
+    R<String> collectTask(String openid, String taskId);
 }
 

@@ -3,16 +3,21 @@ package com.qjp.bang.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.qjp.bang.common.R;
+import com.qjp.bang.dto.UserListDto;
 import com.qjp.bang.entity.User;
 import com.qjp.bang.entity.UserFollow;
+import com.qjp.bang.exception.BangException;
 import com.qjp.bang.mapper.UserFollowMapper;
 import com.qjp.bang.service.UserFollowService;
 import com.qjp.bang.service.UserService;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * (UserFollow)表服务实现类
@@ -34,7 +39,7 @@ public class UserFollowServiceImpl extends ServiceImpl<UserFollowMapper, UserFol
     @Override
     public R<String> follow(String toId, String openid) {
 
-        boolean have = haveOne(toId);
+        boolean have = userService.haveOne(toId);
         if (!have) return R.error("没有这个用户！");
 
         boolean is = isFollow(toId, openid);
@@ -80,21 +85,6 @@ public class UserFollowServiceImpl extends ServiceImpl<UserFollowMapper, UserFol
     }
 
 
-
-    /**
-     * 查询是否有该用户
-     *
-     * @param id
-     * @return
-     */
-    private boolean haveOne(String id) {
-        LambdaQueryWrapper<User> qw = new LambdaQueryWrapper<>();
-        qw.eq(User::getId, id);
-        //是否有这个人
-        int count = userService.count(qw);
-        return count > 0;
-    }
-
     /**
      * 是否已关注
      * @param toId
@@ -127,6 +117,78 @@ public class UserFollowServiceImpl extends ServiceImpl<UserFollowMapper, UserFol
             ids[i] = list.get(i).getFollowId();
         }
         return ids;
+    }
+
+    /**
+     * 我的关注
+     * @param openid
+     * @return
+     */
+    @Override
+    public R myFollow(String openid) {
+        if (!userService.haveOne(openid)) BangException.cast("您的账号有误！请联系管理员");
+        LambdaQueryWrapper<UserFollow> qw = new LambdaQueryWrapper<>();
+        qw.eq(UserFollow::getUserId,openid).orderByDesc(UserFollow::getCreateTime);
+        List<UserFollow> list = this.list(qw);
+        List<String> ids = new ArrayList<>(list.size());
+        for (UserFollow follow : list) {
+            ids.add(follow.getFollowId());
+        }
+        List<User> users = userService.listByIds(ids);
+        List<UserListDto> resDto = users.stream().map(user -> {
+            UserListDto userListDto = new UserListDto();
+            BeanUtils.copyProperties(user, userListDto);
+            //是否关注
+            boolean follow = this.isFollow(user.getId(), openid);
+            if (follow) {
+                userListDto.setFollow(true);
+                //是否互关
+                boolean followToo = this.isFollow(openid, user.getId());
+                if (followToo) userListDto.setFollowToo(true);
+            } else {
+                userListDto.setFollow(false);
+                userListDto.setFollowToo(false);
+            }
+            return userListDto;
+        }).collect(Collectors.toList());
+
+        return R.success(resDto);
+    }
+
+    /**
+     * 我的粉丝
+     * @param openid
+     * @return
+     */
+    @Override
+    public R myFans(String openid) {
+        if (!userService.haveOne(openid)) BangException.cast("您的账号有误！请联系管理员");
+        LambdaQueryWrapper<UserFollow> qw = new LambdaQueryWrapper<>();
+        qw.eq(UserFollow::getFollowId,openid).orderByDesc(UserFollow::getCreateTime);
+        List<UserFollow> list = this.list(qw);
+        List<String> ids = new ArrayList<>(list.size());
+        for (UserFollow follow : list) {
+            ids.add(follow.getFollowId());
+        }
+        List<User> users = userService.listByIds(ids);
+        List<UserListDto> resDto = users.stream().map(user -> {
+            UserListDto userListDto = new UserListDto();
+            BeanUtils.copyProperties(user, userListDto);
+            //是否关注
+            boolean follow = this.isFollow(user.getId(), openid);
+            if (follow) {
+                userListDto.setFollow(true);
+                //是否互关
+                boolean followToo = this.isFollow(openid, user.getId());
+                if (followToo) userListDto.setFollowToo(true);
+            } else {
+                userListDto.setFollow(false);
+                userListDto.setFollowToo(false);
+            }
+            return userListDto;
+        }).collect(Collectors.toList());
+
+        return R.success(resDto);
     }
 }
 

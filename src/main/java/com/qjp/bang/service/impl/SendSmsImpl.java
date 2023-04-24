@@ -4,7 +4,7 @@ package com.qjp.bang.service.impl;
 import com.qjp.bang.service.SendSms;
 import com.qjp.bang.utils.SendSmsUtil;
 import com.qjp.bang.utils.ValidateCodeUtils;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -17,8 +17,13 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class SendSmsImpl implements SendSms {
     @Resource
-    RedisTemplate redisTemplate;
+    StringRedisTemplate stringRedisTemplate;
 
+    /**
+     * 生成存储并发送验证码
+     * @param phone
+     * @return
+     */
     @Override
     public boolean addSendSms(String phone) {
         String code = ValidateCodeUtils.generateValidateCode(4).toString();
@@ -29,7 +34,7 @@ public class SendSmsImpl implements SendSms {
         //返回ture则发送成功
         if (send){
             //存入redis中并设置过期时间，这里设置5分钟过期
-            redisTemplate.opsForValue().set(phone,code,5, TimeUnit.MINUTES);
+            stringRedisTemplate.opsForValue().set(phone,code,5, TimeUnit.MINUTES);
             return true;
         }else {
             //返回false则发送失败

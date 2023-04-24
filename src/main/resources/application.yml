@@ -1,8 +1,8 @@
 
 spring:
   profiles:
-#    active: yun
-    active: loc
+    active: yun
+#    active: loc
   mvc:
     pathmatch:
       matching-strategy: ant_path_matcher # 解决swagger与高版本SpringBoot的冲突

@@ -5,10 +5,8 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.qjp.bang.entity.TaskHistory;
 import com.qjp.bang.mapper.TaskHistoryMapper;
 import com.qjp.bang.service.TaskHistoryService;
-import com.qjp.bang.service.UserService;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import java.time.LocalDateTime;
 
 /**
@@ -19,12 +17,15 @@ import java.time.LocalDateTime;
  */
 @Service("taskHistoryService")
 public class TaskHistoryServiceImpl extends ServiceImpl<TaskHistoryMapper, TaskHistory> implements TaskHistoryService {
-    @Resource
-    UserService userService;
 
-
+    /**
+     * 添加历史记录
+     * @param openid
+     * @param taskId
+     * @return
+     */
     @Override
-    public void addHistory(String openid, String taskId) {
+    public boolean addHistory(String openid, String taskId) {
         LambdaQueryWrapper<TaskHistory> qw = new LambdaQueryWrapper<>();
         qw.eq(TaskHistory::getUserId,openid).eq(TaskHistory::getTaskId,taskId);
         int count = this.count(qw);
@@ -37,7 +38,7 @@ public class TaskHistoryServiceImpl extends ServiceImpl<TaskHistoryMapper, TaskH
         taskHistory.setTaskId(taskId);
         taskHistory.setUserId(openid);
         taskHistory.setBrowseTime(LocalDateTime.now());
-        this.save(taskHistory);
+        return this.save(taskHistory);
     }
 }
 

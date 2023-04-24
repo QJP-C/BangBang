@@ -18,9 +18,14 @@ import java.time.LocalDateTime;
  */
 @Service("taskCollectService")
 public class TaskCollectServiceImpl extends ServiceImpl<TaskCollectMapper, TaskCollect> implements TaskCollectService {
-
+    /**
+     * 收藏任务
+     * @param openid
+     * @param taskId
+     * @return
+     */
     @Override
-    public R<String> likeTask(String openid, String taskId) {
+    public R<String> collectTask(String openid, String taskId) {
         TaskCollect taskCollect = new TaskCollect();
         taskCollect.setUserId(openid);
         taskCollect.setTaskId(taskId);
