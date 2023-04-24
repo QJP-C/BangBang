@@ -10,6 +10,8 @@ import lombok.Data;
 public class PostDetDto extends Post {
     @ApiModelProperty("发帖用户头像")
     private String head;
+    @ApiModelProperty("发帖用户昵称")
+    private String username;
     @ApiModelProperty("话题名")
     private String TopicName;
     @ApiModelProperty("浏览量")

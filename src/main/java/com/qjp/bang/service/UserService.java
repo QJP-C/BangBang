@@ -7,6 +7,8 @@ import com.qjp.bang.dto.UserMyInfo;
 import com.qjp.bang.dto.UserUpdate;
 import com.qjp.bang.entity.User;
 
+import java.util.Map;
+
 /**
  * (User)表服务接口
  *
@@ -25,8 +27,6 @@ public interface UserService extends IService<User> {
 
     R<UserMyInfo> myInfo(String id);
     R<UserInfo> otherInfo(String id, String toOpenid);
-
-
-    String getOneHead(String userId);
+    Map<String, String> getOneInfo(String userId);
 }
 

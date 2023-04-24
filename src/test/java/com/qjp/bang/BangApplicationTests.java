@@ -1,5 +1,6 @@
 package com.qjp.bang;
 
+import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -16,6 +17,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
@@ -28,6 +30,9 @@ import java.util.concurrent.TimeUnit;
 class BangApplicationTests {
     @Autowired
     private RedisTemplate redisTemplate;
+
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
 
     @Resource
     private UserService userService;
@@ -143,6 +148,32 @@ class BangApplicationTests {
         Date date1 = DateUtil.parse(dateStr1);
         LocalDateTime of = LocalDateTimeUtil.of(date1);
         System.out.println(LocalDateTimeUtil.ofUTC(date1.getTime()));
+    }
+    @Test
+    void testListSort(){
+        LambdaQueryWrapper<Task> qw = new LambdaQueryWrapper<>();
+        List<Task> list = taskService.list();
+        list.forEach(System.out::println);
+        System.out.println("================================================");
+        ListUtil.sortByProperty(list, "limitTime");
+        ListUtil.reverse(list);
+        list.forEach(System.out::println);
+    }
+    @Test
+    void RedisClass(){
+        redisTemplate.opsForValue().set("aaa","aaaa");
+        stringRedisTemplate.opsForValue().set("bbb","bbbb");
+    }
+    @Test
+    void RedisClass1(){
+        String date ="2023-04-24 19:41:08";
+        Date date1 = DateUtil.parse(date);
+        System.out.println(date1.getTime());
+    }
+    @Test
+    void RedisClass21(){
+        //当前 1682339809761
+        System.out.println(System.currentTimeMillis());
     }
 
 }

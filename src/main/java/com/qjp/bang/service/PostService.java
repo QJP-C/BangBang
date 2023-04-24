@@ -52,10 +52,11 @@ public interface PostService extends IService<Post> {
     /**
      * 关注的用户动态
      * @param openid
-     * @param page
+     * @param max
+     * @param offset
      * @param pageSize
      * @return
      */
-    R<Page<PostListResDto>> pageByFollow(String openid, int page, int pageSize);
+    R queryPostOfFollow(String openid, Long max, Integer offset, Integer pageSize);
 }
 

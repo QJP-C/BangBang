@@ -17,6 +17,9 @@ public class PostListResDto {
     //发帖用户头像
     @ApiModelProperty("发帖用户头像")
     private String head;
+    //发帖用户头像
+    @ApiModelProperty("发帖用户昵称")
+    private String username;
     //是否关注发贴人
     @ApiModelProperty("是否关注发贴人")
     private boolean follow;

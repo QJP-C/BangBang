@@ -4,11 +4,11 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.qjp.bang.common.R;
 import com.qjp.bang.dto.UserInfo;
+import com.qjp.bang.dto.UserMyInfo;
+import com.qjp.bang.dto.UserUpdate;
+import com.qjp.bang.entity.User;
 import com.qjp.bang.entity.UserFollow;
 import com.qjp.bang.mapper.UserMapper;
-import com.qjp.bang.dto.UserMyInfo;
-import com.qjp.bang.entity.User;
-import com.qjp.bang.dto.UserUpdate;
 import com.qjp.bang.service.PostLikeService;
 import com.qjp.bang.service.SendSms;
 import com.qjp.bang.service.UserFollowService;
@@ -20,7 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.sf.json.JSONObject;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -44,7 +44,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     SendSms sendSms;
 
     @Resource
-    RedisTemplate redisTemplate;
+    StringRedisTemplate stringRedisTemplate;
 
     @Resource
     PostLikeService postLikeService;
@@ -85,7 +85,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
             //生成token
             String token = jwtUtil.getToken(session);
-            redisTemplate.opsForValue().set(openid,token,7, TimeUnit.DAYS);
+            stringRedisTemplate.opsForValue().set(openid,token,7, TimeUnit.DAYS);
             Map<String, String> result = new HashMap<>();
             result.put("token", token);
 
@@ -159,7 +159,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      */
     @Override
     public R<String> check(String openid, String phone, String code) {
-        String codeInRedis = (String) redisTemplate.opsForValue().get(phone);
+        String codeInRedis = (String) stringRedisTemplate.opsForValue().get(phone);
         User user = new User();
         user.setId(openid);
         user.setPhone(phone);
@@ -176,7 +176,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     public R<UserMyInfo> myInfo(String id) {
         User user = this.getById(id);
         UserMyInfo userMyInfo = new UserMyInfo();
-        //TODO 获取被赞数
+        //获取被赞数
         Long likeNum = postLikeService.getUserLikeNum(id);
         userMyInfo.setNice(likeNum);
         //获取关注数
@@ -225,13 +225,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     /**
      * 获取用户头像
+     *
      * @param userId
      * @return
      */
     @Override
-    public String getOneHead(String userId) {
+    public Map<String, String> getOneInfo(String userId) {
         User user = this.getById(userId);
-        return user.getHead();
+        Map<String,String> res = new HashMap<String,String>();
+        res.put("head",user.getHead());
+        res.put("username", user.getUsername());
+        return res;
     }
 
     /**

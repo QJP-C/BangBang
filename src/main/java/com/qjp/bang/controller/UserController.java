@@ -78,11 +78,11 @@ public class UserController {
         return userService.otherInfo(myOpenid,toOpenid);
     }
     @ApiOperation("关注取关")
-    @PostMapping("/follow")
+    @GetMapping("follow/{toId}")
     public R<String> follow(@RequestHeader("Authorization") String header,
-                            @NotBlank @RequestBody Map<String,String> toId){
+                            @PathVariable("toId")String toId){
         String openid = jwtUtil.getOpenidFromToken(header);
-        return userFollowService.follow(toId.get("toId"),openid);
+        return userFollowService.follow(toId,openid);
     }
 }
 

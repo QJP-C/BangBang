@@ -7,4 +7,7 @@ public class Constants {
     public static final String SEND_SECRET = "0c1hMteNfBmolu2BMbCfUG5nIl3tXn";
     public static final String REDIS_COUNTDOWN_KEY= "countdown::";
     public static final String REDIS_BROWSE_KEY= "browse::";
+    public static final String REDIS_FEED_KEY= "feed::";
+
+
 }

@@ -65,20 +65,37 @@ public class PostController {
     @ApiOperation("按话题查")
     @GetMapping("list/{topicId}")
     public R<Page<PostListResDto>> pageByTopic(@RequestHeader("Authorization") String header,
-                                         @PathVariable(value = "topicId", required = false) String topicId,
-                                         @RequestParam("page") int page,
-                                         @RequestParam("pageSize") int pageSize) {
+                                               @PathVariable(value = "topicId", required = false) String topicId,
+                                               @RequestParam("page") int page,
+                                               @RequestParam("pageSize") int pageSize) {
         String openid = jwtUtil.getOpenidFromToken(header);
         return postService.pageForTopic(openid, topicId, page, pageSize);
     }
 
     @ApiOperation("关注的用户动态")
     @GetMapping("followList")
-    public R<Page<PostListResDto>> pageByFollow(@RequestHeader("Authorization") String header,
-                                                @RequestParam("page") int page,
-                                                @RequestParam("pageSize") int pageSize){
+    public R pageByFollow(@RequestHeader("Authorization") String header,
+                          @RequestParam("page") int page,
+                          @RequestParam("pageSize") int pageSize) {
         String openid = jwtUtil.getOpenidFromToken(header);
         return postService.pageByFollow(openid, page, pageSize);
+    }
+
+    /**
+     * @param header
+     * @param max    上一次查询的最小时间
+     * @param offset 要跳过的元素的个数（和上次查询最小的值相同的个数）
+     * @return
+     */
+    @ApiOperation("关注的用户动态")
+    @GetMapping("followerList")
+    public R pageByFollow1(@RequestHeader("Authorization") String header,
+                           @RequestParam("lastId") Long max,
+                           @RequestParam(value = "offset", defaultValue = "0") Integer offset,
+                           @RequestParam("pageSize")Integer pageSize
+                           ) {
+        String openid = jwtUtil.getOpenidFromToken(header);
+        return postService.queryPostOfFollow(openid, max, offset,pageSize);
     }
 
 }
