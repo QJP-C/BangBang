@@ -26,5 +26,12 @@ public interface TaskClassService extends IService<TaskClass> {
      * @return
      */
     R<String> newClass(TaskNewClassDto taskNewClassDto);
+
+    /**
+     * 获取类型名称
+     * @param openid
+     * @return
+     */
+    String typesName(String typeId);
 }
 

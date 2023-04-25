@@ -112,7 +112,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
         dto.setFromHead(oneInfo.get("head"));
         dto.setFromName(oneInfo.get("username"));
         //分类信息
-        dto.setType(className(task.getType()));
+        dto.setTypeId(className(task.getTypeId()));
         //获取附件url
         String[] fromFiles = files(taskId, "1");
         if (fromFiles!=null){
@@ -150,18 +150,13 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
     @Override
     public R<Page<TaskListResDto>> taskList(String openid, String typeId, String search, int page, int pageSize) {
         LambdaQueryWrapper<Task> qw = new LambdaQueryWrapper<>();
-        //是否按类型查询
-        if (typeId!=null){
-            qw.eq(Task::getType,typeId);
-        }
-        //是否有搜索字段
-        if (search!=null){
-            qw.like(Task::getLocation,search)
-                    .or()
-                    .like(Task::getDetails,search)
-                    .or()
-                    .like(Task::getTitle,search);
-        }
+        qw
+                .eq(!StringUtil.isNullOrEmpty(typeId),Task::getTypeId,typeId).like(!StringUtil.isNullOrEmpty(search),Task::getLocation,search)
+                .or()
+                .eq(!StringUtil.isNullOrEmpty(typeId),Task::getTypeId,typeId).like(!StringUtil.isNullOrEmpty(search),Task::getDetails,search)
+                .or()
+                .eq(!StringUtil.isNullOrEmpty(typeId),Task::getTypeId,typeId).like(!StringUtil.isNullOrEmpty(search),Task::getTitle,search);
+
         qw.orderByDesc(Task::getReleaseTime);
         return R.success(getListR(openid, qw,page,pageSize));
     }
@@ -276,8 +271,14 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
         Map<String, String> oneInfo = userService.getOneInfo(task.getFromId());
         dto.setHead(oneInfo.get("head"));
         dto.setUsername(oneInfo.get("username"));
+        //是否收藏
         int like = isLike(openid, task.getId());
-        dto.setIsLike(like);
+        dto.setIsCollect(like);
+        //类型信息
+        String typeId = task.getTypeId();
+        if (StringUtil.isNullOrEmpty(typeId)) BangException.cast("请选择类型");
+        String typeName = taskClassService.typesName(typeId);
+        dto.setType(typeName);
         return dto;
     }
 

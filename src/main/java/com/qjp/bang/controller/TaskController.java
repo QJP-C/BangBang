@@ -86,7 +86,7 @@ public class TaskController {
         return taskService.taskList(openid, typeId, search, page, pageSize);
     }
 
-    @ApiOperation("我的发布")
+    @ApiOperation("我的发布(任务)")
     @GetMapping("myList")
     public R<Page<TaskListResDto>> myList(@RequestHeader("Authorization") String header,
                                           @RequestParam(value = "status", required = false) Integer status,
@@ -105,7 +105,7 @@ public class TaskController {
         return taskService.history(openid,page,pageSize);
     }
 
-    @ApiOperation("我的收藏")
+    @ApiOperation("我的收藏(任务)")
     @GetMapping("like")
     public R<Page<TaskListResDto>> myLike(@RequestHeader("Authorization") String header,
                                           @RequestParam(value = "page") int page,

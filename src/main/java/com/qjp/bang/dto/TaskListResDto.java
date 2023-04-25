@@ -30,5 +30,11 @@ public class TaskListResDto {
     private LocalDateTime limitTime;
     //是否收藏   1:已收藏  2:未收藏
     @ApiModelProperty("是否收藏   1:已收藏  2:未收藏")
-    private Integer isLike;
+    private Integer isCollect;
+    //类型id
+    @ApiModelProperty("类型id")
+    private String typeId;
+    //类型id
+    @ApiModelProperty("类型名称")
+    private String type;
 }

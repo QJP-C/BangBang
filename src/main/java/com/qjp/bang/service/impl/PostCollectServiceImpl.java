@@ -8,6 +8,8 @@ import com.qjp.bang.service.PostCollectService;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * (PostCollect)表服务实现类
@@ -56,6 +58,23 @@ public class PostCollectServiceImpl extends ServiceImpl<PostCollectMapper, PostC
         postCollect.setUserId(openid);
         postCollect.setCollectTime(LocalDateTime.now());
         return this.save(postCollect);
+    }
+
+    /**
+     * 获取用户收藏的帖子的id集合
+     * @param openid
+     * @return
+     */
+    @Override
+    public List<String> myCollects(String openid) {
+        LambdaQueryWrapper<PostCollect> qw = new LambdaQueryWrapper<>();
+        qw.eq(PostCollect::getUserId,openid).orderByDesc(PostCollect::getCollectTime);
+        List<PostCollect> list = this.list();
+        List<String> ids = new ArrayList<>(list.size());
+        for (PostCollect collect : list) {
+            ids.add(collect.getPostId());
+        }
+        return ids;
     }
 }
 

@@ -140,7 +140,10 @@ class BangApplicationTests {
     void rediskeyadd1(){
         System.out.println(redisTemplate.opsForValue().increment("ss"));
     }
-
+    @Test
+    void rediskeyadd2(){
+        System.out.println(redisTemplate.opsForValue().increment("ss",-1));
+    }
     @Test
     void snovn(){
 //        System.out.println(DateUtil.getZodiac(Month.JANUARY.getValue(), 28));

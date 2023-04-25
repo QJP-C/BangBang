@@ -96,5 +96,22 @@ public interface PostService extends IService<Post> {
      * @return
      */
     R queryPostOfPersonal(String openid, int page, int pageSize);
+
+    /**
+     * 我的收藏(帖子)
+     * @param openid
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    R queryPostOfMyCollect(String openid, int page, int pageSize);
+
+    /**
+     * 评论帖子
+     * @param openid
+     * @param postId
+     * @return
+     */
+    R commentPost(String openid, String postId);
 }
 

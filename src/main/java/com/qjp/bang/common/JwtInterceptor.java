@@ -7,7 +7,7 @@ import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -22,7 +22,7 @@ import java.util.Objects;
 @Component
 public class JwtInterceptor implements HandlerInterceptor {
     @Resource
-    RedisTemplate redisTemplate;
+    StringRedisTemplate stringRedisTemplate;
 
     @Autowired
     JwtUtil jwtUtil;
@@ -40,7 +40,7 @@ public class JwtInterceptor implements HandlerInterceptor {
         try{
             jwtUtil.verifyToken(token); //校验token
             String openid = jwtUtil.getOpenidFromToken(token);
-            String tokenRedis = Objects.requireNonNull(redisTemplate.opsForValue().get(openid)).toString();
+            String tokenRedis = Objects.requireNonNull(stringRedisTemplate.opsForValue().get(openid)).toString();
             boolean equals = tokenRedis.equals(token);
             if (equals) return true;
             response.setStatus(508);

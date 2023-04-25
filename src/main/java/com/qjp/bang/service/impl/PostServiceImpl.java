@@ -11,6 +11,7 @@ import com.qjp.bang.dto.PostDetDto;
 import com.qjp.bang.dto.PostListResDto;
 import com.qjp.bang.dto.PostNewParamDto;
 import com.qjp.bang.entity.Post;
+import com.qjp.bang.entity.PostCollect;
 import com.qjp.bang.entity.UserFollow;
 import com.qjp.bang.exception.BangException;
 import com.qjp.bang.mapper.PostMapper;
@@ -57,6 +58,8 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
     private UserFollowService userFollowService;
     @Resource
     private UserService userService;
+    @Resource
+    private PostCommentService postCommentService;
 
 
     /**
@@ -434,6 +437,73 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         ListUtil.sortByProperty(list,"likeNum");
         ListUtil.reverse(list);
         return R.success(list);
+    }
+
+    /**
+     * 我的收藏(帖子)
+     * @param openid
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    @Override
+    public R queryPostOfMyCollect(String openid, int page, int pageSize) {
+        //查收藏的帖子
+        LambdaQueryWrapper<PostCollect> qw = new LambdaQueryWrapper<>();
+        qw.eq(PostCollect::getUserId,openid).orderByDesc(PostCollect::getCollectTime);
+        //构造分页
+        Page<PostCollect> pageInfo = new Page<>(page, pageSize);
+        Page<PostListResDto> dtoPage = new Page<>(page, pageSize);
+        postCollectService.page(pageInfo, qw);
+        List<PostCollect> list = pageInfo.getRecords();
+        BeanUtils.copyProperties(pageInfo, dtoPage, "records");
+        List<PostListResDto> resDtoList = list.stream().map(postCollect -> {
+            String postId = postCollect.getPostId();
+            Post post = this.getById(postId);
+            PostListResDto postListResDto = new PostListResDto();
+            BeanUtils.copyProperties(post, postListResDto);
+            //获取话题名
+            String topicName = topicService.getTopicName(post.getTopicId());
+            postListResDto.setTopicName(topicName);
+            //获取发帖人信息
+            Map<String,String> userInfo = userService.getOneInfo(post.getUserId());
+            postListResDto.setHead(userInfo.get("head"));
+            postListResDto.setUsername(userInfo.get("username"));
+            //是否关注发帖人
+            boolean isFollow = userFollowService.isFollow(post.getUserId(), openid);
+            postListResDto.setFollow(isFollow);
+            //获取帖子点赞量
+            Long likeNum = postLikeService.getLikeNum(postId);
+            postListResDto.setLikeNum(likeNum);
+            //获取附件
+            String[] urls = fileService.getPostFiles(postId);
+            postListResDto.setUrls(urls);
+            //是否点赞
+            boolean isLike = postLikeService.isLike(openid, postId);
+            postListResDto.setLike(isLike);
+            //是否收藏
+            boolean collect = postCollectService.isCollect(openid, postId);
+            postListResDto.setCollect(collect);
+            return postListResDto;
+        }).collect(Collectors.toList());
+        dtoPage.setRecords(resDtoList);
+        //按点赞数降序
+        dtoPage.setRecords(ListUtil.sortByProperty(dtoPage.getRecords(),"likeNum"));
+        dtoPage.setRecords(ListUtil.reverse(dtoPage.getRecords()));
+        return R.success(dtoPage);
+    }
+
+    /**
+     * 评论帖子
+     * @param openid
+     * @param postId
+     * @return
+     */
+    @Override
+    public R commentPost(String openid, String postId) {
+
+
+        return null;
     }
 }
 

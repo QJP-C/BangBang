@@ -45,7 +45,7 @@ public class TaskDetailsResultDto {
     private Integer state;
     //类型名称
     @ApiModelProperty("类型名称")
-    private String type;
+    private String typeId;
     //赏金
     @ApiModelProperty("赏金")
     private Double money;

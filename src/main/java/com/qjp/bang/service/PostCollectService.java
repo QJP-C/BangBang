@@ -3,6 +3,8 @@ package com.qjp.bang.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.qjp.bang.entity.PostCollect;
 
+import java.util.List;
+
 /**
  * (PostCollect)表服务接口
  *
@@ -33,5 +35,12 @@ public interface PostCollectService extends IService<PostCollect> {
      * @return
      */
     boolean collectIt(String openid, String postId);
+
+    /**
+     * 获取用户收藏的帖子的id集合
+     * @param openid
+     * @return
+     */
+    List<String> myCollects(String openid);
 }
 

@@ -40,5 +40,15 @@ public class TaskClassServiceImpl extends ServiceImpl<TaskClassMapper, TaskClass
         boolean save = this.save(taskClass);
         return save ? R.success("新增成功") : R.error("新增失败");
     }
+
+    /**
+     * 获取类型名称
+     * @param typeId
+     * @return
+     */
+    @Override
+    public String typesName(String typeId) {
+        return this.getById(typeId).getName();
+    }
 }
 
