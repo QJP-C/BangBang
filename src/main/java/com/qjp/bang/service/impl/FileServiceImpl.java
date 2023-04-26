@@ -51,5 +51,21 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
         }
         return urls;
     }
+
+    /**
+     * 添加完成任务附件
+     * @param url
+     * @param taskId
+     * @return
+     */
+    @Override
+    public boolean addTaskFile(String url, String taskId) {
+        File file = new File();
+        file.setUrl(url);
+        file.setBelong(2);
+        file.setAboutId(taskId);
+        file.setCreateTime(LocalDateTime.now());
+        return this.save(file);
+    }
 }
 

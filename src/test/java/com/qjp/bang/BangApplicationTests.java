@@ -178,6 +178,9 @@ class BangApplicationTests {
         //当前 1682339809761
         System.out.println(System.currentTimeMillis());
     }
+    @Test
+    void RedisClass244(){
+    }
 
 }
 

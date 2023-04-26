@@ -39,7 +39,7 @@ public class TaskDetailsResultDto {
     private Integer urgent;
     //是否收藏   1:已收藏  2:未收藏
     @ApiModelProperty("是否收藏   1:已收藏  2:未收藏")
-    private Integer isLike;
+    private Integer isCollect;
     //任务状态   1:已发布  2:已接取  3:已完成   0:已逾期
     @ApiModelProperty("任务状态   1:已发布  2:已接取  3:已完成   0:已逾期")
     private Integer state;

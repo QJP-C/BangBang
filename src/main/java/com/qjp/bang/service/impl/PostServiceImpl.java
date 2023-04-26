@@ -6,12 +6,10 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.qjp.bang.common.R;
-import com.qjp.bang.dto.FollowListResDto;
-import com.qjp.bang.dto.PostDetDto;
-import com.qjp.bang.dto.PostListResDto;
-import com.qjp.bang.dto.PostNewParamDto;
+import com.qjp.bang.dto.*;
 import com.qjp.bang.entity.Post;
 import com.qjp.bang.entity.PostCollect;
+import com.qjp.bang.entity.PostComment;
 import com.qjp.bang.entity.UserFollow;
 import com.qjp.bang.exception.BangException;
 import com.qjp.bang.mapper.PostMapper;
@@ -31,8 +29,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.qjp.bang.common.Constants.REDIS_BROWSE_KEY;
-import static com.qjp.bang.common.Constants.REDIS_FEED_KEY;
+import static com.qjp.bang.common.Constants.*;
 
 /**
  * (Post)表服务实现类
@@ -495,15 +492,111 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
 
     /**
      * 评论帖子
+     *
      * @param openid
      * @param postId
+     * @param text
      * @return
      */
     @Override
-    public R commentPost(String openid, String postId) {
+    public R commentPost(String openid, String postId, String text) {
+        if (!postHave(postId)) BangException.cast("该帖子不存在！");
+        boolean flag = postCommentService.commentPost(openid,postId,text);
+        return flag ? R.success("评论成功！") : R.error("评论失败！");
+    }
 
+    /**
+     * 点赞/取消帖子
+     * @param openid
+     * @param postCommentId
+     * @return
+     */
+    @Override
+    public R likeComment(String openid, String postCommentId) {
+        String key = REDIS_LIKE_KEY+postCommentId;
+        boolean liked = isLiked(REDIS_LIKE_KEY + postCommentId, openid);
+        if (liked){//取消点赞
+            unlike(key, openid);
+            return R.success("取消点赞成功！");
+        }else {//点赞
+            like(key, openid);
+            return R.success("点赞成功！");
+        }
+    }
 
-        return null;
+    /**
+     * 评论列表
+     * @param openid
+     * @param postId
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    @Override
+    public R commentList(String openid, String postId, int page, int pageSize) {
+        LambdaQueryWrapper<PostCollect> qw = new LambdaQueryWrapper<>();
+        qw.eq(PostCollect::getPostId,postId).orderByDesc(PostCollect::getCollectTime);
+        //构造分页
+        Page<PostComment> pageInfo = new Page<>(page, pageSize);
+        Page<PostCommentListDto> dtoPage = new Page<>(page, pageSize);
+        postCommentService.page(pageInfo);
+        List<PostComment> list = pageInfo.getRecords();
+        BeanUtils.copyProperties(pageInfo, dtoPage, "records");
+        List<PostCommentListDto> resDtoList = list.stream().map(postComment -> {
+            PostCommentListDto dto = new PostCommentListDto();
+            //获取发帖人信息
+            Map<String,String> userInfo = userService.getOneInfo(postComment.getUserId());
+            dto.setHead(userInfo.get("head"));
+            dto.setUsername(userInfo.get("username"));
+            String key = REDIS_LIKE_KEY+postComment.getId();
+            //是否点赞
+            dto.setLike(isLiked(key,openid));
+            //点赞数
+            dto.setLikeNum(countLikes(key));
+            return dto;
+        }).collect(Collectors.toList());
+        dtoPage.setRecords(resDtoList);
+        //按点赞数降序
+        dtoPage.setRecords(ListUtil.sortByProperty(dtoPage.getRecords(),"likeNum"));
+        dtoPage.setRecords(ListUtil.reverse(dtoPage.getRecords()));
+        return R.success(dtoPage);
+    }
+
+    /**
+     * 点赞
+     * @param key
+     * @param openid
+     */
+    public void like(String key, String openid) {
+        stringRedisTemplate.opsForSet().add(key, openid);
+    }
+
+    /**
+     * 取消点赞
+     * @param key
+     * @param openid
+     */
+    public void unlike(String key, String openid) {
+        stringRedisTemplate.opsForSet().remove(key, openid);
+    }
+
+    /**
+     * 是否点赞
+     * @param key
+     * @param openid
+     * @return
+     */
+    public boolean isLiked(String key, String openid) {
+        return stringRedisTemplate.opsForSet().isMember(key, openid);
+    }
+
+    /**
+     * 点赞数
+     * @param key
+     * @return
+     */
+    public long countLikes(String key) {
+        return stringRedisTemplate.opsForSet().size(key);
     }
 }
 

@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.util.Map;
 
 /**
  * (Post)表控制层
@@ -141,18 +142,28 @@ public class PostController {
         return postService.queryPostOfMyCollect(openid, page, pageSize);
     }
 
-    /**
-     * 评论帖子
-     * @param header
-     * @param postId
-     * @return
-     */
     @ApiOperation("评论帖子")
-    @PostMapping("comment")
-    public R commentPost(@RequestHeader("Authorization") String header,@PathVariable("postId")String postId) {
+    @PostMapping("comment/{postId}")
+    public R commentPost(@RequestHeader("Authorization") String header, @PathVariable("postId") String postId, @RequestBody Map<String, String> text) {
         String openid = jwtUtil.getOpenidFromToken(header);
-        return postService.commentPost(openid,postId);
+        return postService.commentPost(openid, postId, text.get("text"));
+    }
+
+    @ApiOperation("点赞帖子")
+    @PostMapping("comment/{postCommentId}")
+    public R likeComment(@RequestHeader("Authorization") String header, @PathVariable("postCommentId") String postCommentId) {
+        String openid = jwtUtil.getOpenidFromToken(header);
+        return postService.likeComment(openid, postCommentId);
+    }
+
+    @ApiOperation("评论列表")
+    @GetMapping("commentList/{postId}")
+    public R commentList(@RequestHeader("Authorization") String header,
+                         @PathVariable("postId") String postId,
+                         @RequestParam("page") int page,
+                         @RequestParam("pageSize") int pageSize) {
+        String openid = jwtUtil.getOpenidFromToken(header);
+        return postService.commentList(openid, postId, page, pageSize);
     }
 
 }
-

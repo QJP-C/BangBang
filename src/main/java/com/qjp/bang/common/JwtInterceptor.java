@@ -18,6 +18,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Objects;
 
+import static com.qjp.bang.common.Constants.REDIS_LOGIN_KEY;
+
 @Slf4j
 @Component
 public class JwtInterceptor implements HandlerInterceptor {
@@ -40,7 +42,7 @@ public class JwtInterceptor implements HandlerInterceptor {
         try{
             jwtUtil.verifyToken(token); //校验token
             String openid = jwtUtil.getOpenidFromToken(token);
-            String tokenRedis = Objects.requireNonNull(stringRedisTemplate.opsForValue().get(openid)).toString();
+            String tokenRedis = Objects.requireNonNull(stringRedisTemplate.opsForValue().get(REDIS_LOGIN_KEY+openid));
             boolean equals = tokenRedis.equals(token);
             if (equals) return true;
             response.setStatus(508);

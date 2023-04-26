@@ -27,6 +27,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import static com.qjp.bang.common.Constants.REDIS_LOGIN_KEY;
+
 /**
  * (User)表服务实现类
  *
@@ -84,7 +86,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
             //生成token
             String token = jwtUtil.getToken(session);
-            stringRedisTemplate.opsForValue().set(openid,token,7, TimeUnit.DAYS);
+            stringRedisTemplate.opsForValue().set(REDIS_LOGIN_KEY+openid,token,7, TimeUnit.DAYS);
             Map<String, String> result = new HashMap<>();
             result.put("token", token);
 

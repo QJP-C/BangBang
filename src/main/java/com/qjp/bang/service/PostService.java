@@ -108,10 +108,22 @@ public interface PostService extends IService<Post> {
 
     /**
      * 评论帖子
+     *
      * @param openid
      * @param postId
+     * @param text
      * @return
      */
-    R commentPost(String openid, String postId);
+    R commentPost(String openid, String postId, String text);
+
+    /**
+     * 点赞/取消帖子
+     * @param openid
+     * @param postCommentId
+     * @return
+     */
+    R likeComment(String openid, String postCommentId);
+
+    R commentList(String openid, String postId, int page, int pageSize);
 }
 

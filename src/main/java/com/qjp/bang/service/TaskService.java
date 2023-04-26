@@ -69,5 +69,22 @@ public interface TaskService extends IService<Task> {
      * @return
      */
     R<Page<TaskListResDto>> myCollect(String openid, int page, int pageSize);
+
+    /**
+     * 接任务
+     * @param openid
+     * @param taskId
+     * @return
+     */
+    R acceptTask(String openid, String taskId);
+
+    /**
+     * 完成任务
+     * @param openid
+     * @param taskId
+     * @param urls
+     * @return
+     */
+    R finishAccept(String openid, String taskId, String[] urls);
 }
 

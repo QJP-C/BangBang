@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.validation.constraints.NotBlank;
 import java.util.List;
+import java.util.Map;
 
 /**
  * (Task)表控制层
@@ -114,6 +115,18 @@ public class TaskController {
         return taskService.myCollect(openid,page,pageSize);
     }
 
+    @ApiOperation("接任务")
+    @GetMapping("accept/{taskId}")
+    public R accept(@RequestHeader("Authorization") String header, @PathVariable("taskId") String taskId){
+        String openid = jwtUtil.getOpenidFromToken(header);
+        return taskService.acceptTask(openid,taskId);
+    }
 
+    @ApiOperation("完成任务")
+    @GetMapping("finish/{taskId}")
+    public R finishAccept(@RequestHeader("Authorization") String header, Map<String,String[]> map, @PathVariable("taskId") String taskId){
+        String openid = jwtUtil.getOpenidFromToken(header);
+        return taskService.finishAccept(openid,taskId,map.get("urls"));
+    }
 }
 

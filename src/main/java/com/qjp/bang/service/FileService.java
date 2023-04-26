@@ -24,5 +24,13 @@ public interface FileService extends IService<File> {
      * @return
      */
     String[] getPostFiles(String postId);
+
+    /**
+     * 添加完成任务附件
+     * @param url
+     * @param taskId
+     * @return
+     */
+    boolean addTaskFile(String url, String taskId);
 }
 

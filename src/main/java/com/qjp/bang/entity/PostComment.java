@@ -2,7 +2,7 @@ package com.qjp.bang.entity;
 
 import lombok.Data;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 /**
  * (PostComment)表实体类
@@ -18,10 +18,10 @@ public class PostComment {
     private String userId;
     //文本
     private String text;
-    //帖子
+    //帖子id
     private String postId;
     //评论时间
-    private Date commentTime;
+    private LocalDateTime commentTime;
 
 }
 

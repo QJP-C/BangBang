@@ -1,6 +1,7 @@
 package com.qjp.bang.service.impl;
 
 import cn.hutool.core.util.ArrayUtil;
+import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -69,7 +70,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
         BeanUtils.copyProperties(taskNewDto, task);
         task.setFromId(openid);
         task.setReleaseTime(now);
-        task.setState(0);//待审核
+        task.setState(1);//已发布  TODO 未提交审核
         int insert = taskMapper.insert(task);
         if (insert == 0){
             BangException.cast("发布失败!");
@@ -106,7 +107,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
         BeanUtils.copyProperties(task,dto);
         //该任务当前用户是否收藏
         int like = isLike(openid, taskId);
-        dto.setIsLike(like);
+        dto.setIsCollect(like);
         //用户信息
         Map<String, String> oneInfo = userService.getOneInfo(task.getFromId());
         dto.setFromHead(oneInfo.get("head"));
@@ -233,6 +234,53 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
         }).collect(Collectors.toList());
         dtoPage.setRecords(list);
         return R.success(dtoPage);
+    }
+
+    /**
+     * 接任务
+     * @param openid
+     * @param taskId
+     * @return
+     */
+    @Override
+    public R acceptTask(String openid, String taskId) {
+        Task task = this.getById(taskId);
+        if (ObjectUtil.isEmpty(task)) BangException.cast("任务不存在！");
+        Integer state = task.getState();
+        if (state!=1){
+            BangException.cast("该任务已被接取或正在审核！");
+        }
+        if (!StringUtil.isNullOrEmpty(task.getToId())){
+            BangException.cast("您手慢啦！该任务已经被别抢走啦！");
+        }
+        task.setState(2);
+        task.setToId(openid);
+        boolean b = this.updateById(task);
+        return b ? R.success("接单成功！") : R.success("接单失败！");
+    }
+
+    /**
+     * 完成任务
+     * @param openid
+     * @param taskId
+     * @param urls
+     * @return
+     */
+    @Override
+    public R finishAccept(String openid, String taskId, String[] urls) {
+        Task task = this.getById(taskId);
+        if (ObjectUtil.isEmpty(task)) BangException.cast("任务不存在！");
+        if (!task.getToId().equals(openid)) BangException.cast("无法完成别人的任务！");
+        task.setState(3);
+        boolean b = this.updateById(task);
+        if (b){
+            //添加完成任务附件
+            for (String url : urls) {
+                boolean flag = fileService.addTaskFile(url,taskId);
+                if (!flag) BangException.cast("添加附件失败，请重新提交！");
+            }
+        }
+        return R.success("提交任务成功！");
     }
 
     /**
