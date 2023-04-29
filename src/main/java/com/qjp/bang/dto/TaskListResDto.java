@@ -37,4 +37,7 @@ public class TaskListResDto {
     //类型id
     @ApiModelProperty("类型名称")
     private String type;
+    //赏金
+    @ApiModelProperty("赏金")
+    private Double money;
 }
